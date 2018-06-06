@@ -13,10 +13,10 @@ extern crate serde;
 extern crate serde_derive;
 extern crate serde_json;
 
-mod controllers;
 mod common;
+mod controllers;
 
-use actix_web::{server, App};
+use actix_web::{server, App, http};
 use controllers::user;
 
 fn main() {
@@ -31,15 +31,20 @@ fn main() {
     server::new(|| {
         App::new()
             .prefix("/user")
-            .resource("/register", |r| r.f(user::register))
-            .resource("/login", |r| r.f(user::login))
+            .resource("/register", |r| {
+                r.method(http::Method::POST).with(user::register)
+            })
+            .resource("/login", |r| {
+                r.method(http::Method::POST).with(user::login)
+            })
             .resource("/update", |r| {
-                r.f(user::update);
+                r.method(http::Method::PUT).with(user::update);
             })
             .resource("/reset", |r| {
-                r.f(user::reset);
+                r.method(http::Method::PUT).with(user::reset);
             })
-    }).bind("127.0.0.1:8888")
+        })
+        .bind("127.0.0.1:8888")
         .expect("can't bind to port 8888")
         .start();
 
