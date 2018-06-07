@@ -1,44 +1,45 @@
 use std::sync::Arc;
-use actix_web::{HttpRequest, Responder};
-use chrono::{Local, NaiveDateTime};
+use actix_web::{HttpRequest, Responder, State, Json, Form};
 
 use common::state::AppState;
-use models::user::User;
+use models::user::*;
 
-pub fn register(req: HttpRequest<AppState>) -> impl Responder {
+pub fn register(register_user: Form<RegisterUser>, state: State<AppState>) -> impl Responder {
 
-    let conn = &req.state().conn;
-
-    let user = User {
-        username: "test".to_owned(),
-        nickname: "aaa".to_owned(),
-        email: "a@qq.com".to_owned(),
-        phone: "123334444444".to_owned(),
-        password: "111".to_owned(),
-        salt: "md5".to_owned(),
-        create_time: Local::now().naive_utc(),
-        update_time: Local::now().naive_utc()
-    };
+    let conn = &state.conn;
+    let user = register_user.into_user();
 
     let res = match user.create(conn) {
         Ok(msg) => msg,
-        Err(msg) => msg
+        Err(err) => err
     };
 
     res
 }
 
-pub fn login(req: HttpRequest<AppState>) -> impl Responder {
+pub fn login(login_user: Form<LoginUser>, state: State<AppState>) -> impl Responder {
 
     "login"
 }
 
-pub fn update(req: HttpRequest<AppState>) -> impl Responder {
+pub fn update(update_user: Form<UpdateUser>, state: State<AppState>) -> impl Responder {
 
     "update"
 }
 
-pub fn reset(req: HttpRequest<AppState>) -> impl Responder {
+pub fn delete(delete_user: Form<DeleteUser>, state: State<AppState>) -> impl Responder {
+
+    let conn = &state.conn;
+    
+    let res = match delete_user.delete(conn) {
+        Ok(msg) => msg,
+        Err(err) => err
+    };
+
+    res
+}
+
+pub fn reset_password(req: HttpRequest<AppState>) -> impl Responder {
 
     "reset"
 }

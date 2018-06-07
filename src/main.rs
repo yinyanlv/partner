@@ -23,6 +23,7 @@ use controllers::user;
 use common::state::AppState;
 
 fn main() {
+
     let config = dotenv::var("CONFIG").expect("CONFIG must be set in .env file");
 
     if config == "dev" {
@@ -34,21 +35,26 @@ fn main() {
     server::new(|| {
         App::with_state(AppState::new())
             .resource("/register", |r| {
-                r.method(http::Method::POST).f(user::register)
+                r.method(http::Method::POST).with2(user::register)
             })
             .resource("/login", |r| {
-                r.method(http::Method::POST).f(user::login)
+                r.method(http::Method::POST).with2(user::login)
             })
             .resource("/update", |r| {
-                r.method(http::Method::PUT).f(user::update)
+                r.method(http::Method::PUT).with2(user::update)
             })
-            .resource("/reset", |r| {
-                r.method(http::Method::PUT).f(user::reset)
+            .resource("/delete", |r| {
+                r.method(http::Method::DELETE).with2(user::delete)
+            })
+            .resource("/reset-password", |r| {
+                r.method(http::Method::PUT).f(user::reset_password)
             })
         })
         .bind("127.0.0.1:8888")
         .expect("can't bind to port 8888")
         .start();
+
+    println!("server is listening on port 8888 !");
 
     actix_sys.run();
 }
