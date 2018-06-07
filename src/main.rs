@@ -2,7 +2,6 @@
 
 extern crate actix;
 extern crate actix_web;
-// extern crate mysql;
 #[macro_use]
 extern crate diesel;
 extern crate dotenv;
@@ -12,12 +11,16 @@ extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 extern crate serde_json;
+extern crate chrono;
 
 mod common;
 mod controllers;
+mod models;
 
+use std::sync::Arc;
 use actix_web::{server, App, http};
 use controllers::user;
+use common::state::AppState;
 
 fn main() {
     let config = dotenv::var("CONFIG").expect("CONFIG must be set in .env file");
@@ -29,19 +32,18 @@ fn main() {
     let actix_sys = actix::System::new("partner");
 
     server::new(|| {
-        App::new()
-            .prefix("/user")
+        App::with_state(AppState::new())
             .resource("/register", |r| {
-                r.method(http::Method::POST).with(user::register)
+                r.method(http::Method::POST).f(user::register)
             })
             .resource("/login", |r| {
-                r.method(http::Method::POST).with(user::login)
+                r.method(http::Method::POST).f(user::login)
             })
             .resource("/update", |r| {
-                r.method(http::Method::PUT).with(user::update);
+                r.method(http::Method::PUT).f(user::update)
             })
             .resource("/reset", |r| {
-                r.method(http::Method::PUT).with(user::reset);
+                r.method(http::Method::PUT).f(user::reset)
             })
         })
         .bind("127.0.0.1:8888")
