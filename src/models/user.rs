@@ -88,6 +88,7 @@ pub struct User {
 }
 
 impl User {
+
     pub fn create(&self, conn: &Conn) -> Result<String, String> {
 
         diesel::insert_into(user).values(self).execute(conn).expect("create user error");
@@ -97,5 +98,16 @@ impl User {
     pub fn update(&self) -> Result<String, String> {
 
         Ok("update success".to_owned())
+    }
+
+    pub fn is_exist(conn: &Conn, uname: &str) -> bool {
+
+        let count = user.filter(username.eq(uname)).load(conn).expect("check user is exist error");
+
+        if count > 0 {
+            true
+        } else {
+            false
+        }
     }
 }

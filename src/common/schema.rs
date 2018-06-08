@@ -2,7 +2,7 @@ table! {
     user (id) {
         id -> Integer,
         username -> Varchar,
-        nickname -> Varchar,
+        nickname -> Nullable<Varchar>,
         email -> Varchar,
         phone -> Nullable<Varchar>,
         role -> Nullable<Unsigned<Tinyint>>,
