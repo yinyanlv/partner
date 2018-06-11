@@ -5,7 +5,7 @@ table! {
         nickname -> Nullable<Varchar>,
         email -> Varchar,
         phone -> Nullable<Varchar>,
-        role -> Nullable<Unsigned<Tinyint>>,
+        role -> Nullable<Tinyint>,
         password -> Varchar,
         salt -> Varchar,
         create_time -> Datetime,

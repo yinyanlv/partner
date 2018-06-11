@@ -4,7 +4,7 @@ CREATE TABLE `user` (
     `nickname` varchar(20), 
     `email` varchar(40) NOT NULL,
     `phone` varchar(20),
-    `role` tinyint(2) UNSIGNED DEFAULT 0,
+    `role` tinyint(2) DEFAULT 0,
     `password` varchar(40) NOT NULL,
     `salt` varchar(20) NOT NULL,
     `create_time` datetime NOT NULL,

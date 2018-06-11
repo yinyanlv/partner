@@ -44,10 +44,15 @@ pub struct LoginUser {
 }
 
 impl LoginUser {
-    pub fn validate(&self) -> Result<String, String> {
-
+    pub fn validate(&self, conn: &Conn) -> Result<String, String> {
         
-        Ok("login".to_owned())
+        let is_user_exist = User::is_exist(conn, &*self.username);
+
+        if is_user_exist {
+            Ok("login".to_owned())
+        } else {
+            Err("user not exist".to_owned())   
+        }
     }
 }
 
@@ -72,6 +77,20 @@ impl DeleteUser {
 
         Ok("delete success".to_owned())
     }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Queryable)]
+pub struct RawUser {
+    pub id: i32,
+    pub username: String,
+    pub nickname: Option<String>,
+    pub email: String,
+    pub phone: Option<String>,
+    pub role: Option<i8>,
+    pub password: String,
+    pub salt: String,
+    pub create_time: NaiveDateTime,
+    pub update_time: NaiveDateTime
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Insertable)]
@@ -100,14 +119,13 @@ impl User {
         Ok("update success".to_owned())
     }
 
-    pub fn is_exist(conn: &Conn, uname: &str) -> bool {
+    pub fn is_exist(conn: &Conn, name: &str) -> bool {
 
-        let count = user.filter(username.eq(uname)).load(conn).expect("check user is exist error");
+        let res = user.filter(username.eq(name)).get_result::<RawUser>(conn);
 
-        if count > 0 {
-            true
-        } else {
-            false
+        match res {
+            Ok(_) => true,
+            Err(_) => false
         }
     }
 }

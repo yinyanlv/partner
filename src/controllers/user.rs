@@ -19,7 +19,14 @@ pub fn register(register_user: Form<RegisterUser>, state: State<AppState>) -> im
 
 pub fn login(login_user: Form<LoginUser>, state: State<AppState>) -> impl Responder {
 
-    "login"
+    let conn = &state.conn;
+
+    let res = match login_user.validate(conn) {
+        Ok(msg) => msg,
+        Err(err) => err
+    };
+
+    res
 }
 
 pub fn update(update_user: Form<UpdateUser>, state: State<AppState>) -> impl Responder {

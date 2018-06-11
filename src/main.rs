@@ -34,6 +34,7 @@ fn main() {
 
     server::new(|| {
         App::with_state(AppState::new())
+            .prefix("/api")
             .resource("/register", |r| {
                 r.method(http::Method::POST).with2(user::register)
             })
