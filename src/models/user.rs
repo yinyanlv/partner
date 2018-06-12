@@ -6,30 +6,33 @@ use diesel::prelude::MysqlConnection;
 use diesel::r2d2::{ConnectionManager, Pool, PooledConnection};
 
 use common::schema::user;
-use common::schema::user::dsl::*;
+use common::util::*;
 
 type Conn = PooledConnection<ConnectionManager<MysqlConnection>>;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RegisterUser {
     pub username: String,
-    pub nickname: String,
     pub email: String,
-    pub phone: String,
-    pub password: String
+    pub password: String,
+    pub confirm_password: String
 }
 
 impl RegisterUser {
 
     pub fn into_user(&self) -> User {
 
+        let salt = random_string(8);
+        let password = md5_encode(&*format!("{}{}", self.password.clone(), &*salt));
+
         User {
             username: self.username.clone(),
-            nickname: self.nickname.clone(),
+            nickname: "".to_owned(),
             email: self.email.clone(),
-            phone: self.phone.clone(),
-            password: self.password.clone(),
-            salt: "md5".to_owned(),
+            phone: "".to_owned(),
+            password: password,
+            role: 0,
+            salt: salt,
             create_time: Local::now().naive_utc(),
             update_time: Local::now().naive_utc()
         }
@@ -44,15 +47,15 @@ pub struct LoginUser {
 }
 
 impl LoginUser {
-    pub fn validate(&self, conn: &Conn) -> Result<String, String> {
+    pub fn validate(&self, conn: &Conn) -> Result<bool, bool> {
         
-        let is_user_exist = User::is_exist(conn, &*self.username);
+        let is_user_exist = User::is_user_exist(conn, &*self.username);
 
-        if is_user_exist {
-            Ok("login".to_owned())
-        } else {
-            Err("user not exist".to_owned())   
+        if !is_user_exist {
+            return Err(false);   
         }
+
+        Ok(true) 
     }
 }
 
@@ -73,7 +76,9 @@ impl DeleteUser {
 
     pub fn delete(&self, conn: &Conn) -> Result<String, String> {
 
-        diesel::delete(user.filter(username.eq(&self.username))).execute(conn).expect("delete user error");
+        use common::schema::user::dsl::*;
+
+        diesel::delete(user.filter(username.eq(&self.username))).execute(conn);
 
         Ok("delete success".to_owned())
     }
@@ -100,6 +105,7 @@ pub struct User {
     pub nickname: String,
     pub email: String,
     pub phone: String,
+    pub role: i8,
     pub password: String,
     pub salt: String,
     pub create_time: NaiveDateTime,
@@ -110,8 +116,14 @@ impl User {
 
     pub fn create(&self, conn: &Conn) -> Result<String, String> {
 
-        diesel::insert_into(user).values(self).execute(conn).expect("create user error");
-        Ok("create success".to_string())
+        use common::schema::user::dsl::*;
+
+        let res = diesel::insert_into(user).values(self).execute(conn);
+
+        match res {
+            Ok(_) => Ok("".to_owned()),
+            Err(err) => Err(err.to_string())
+        }
     }
 
     pub fn update(&self) -> Result<String, String> {
@@ -119,9 +131,23 @@ impl User {
         Ok("update success".to_owned())
     }
 
-    pub fn is_exist(conn: &Conn, name: &str) -> bool {
+    pub fn is_user_exist(conn: &Conn, _username: &str) -> bool {
 
-        let res = user.filter(username.eq(name)).get_result::<RawUser>(conn);
+        use common::schema::user::dsl::*;
+
+        let res = user.filter(username.eq(_username)).get_result::<RawUser>(conn);
+
+        match res {
+            Ok(_) => true,
+            Err(_) => false
+        }
+    }
+
+    pub fn is_email_exist(conn: &Conn, _email: &str) -> bool {
+
+        use common::schema::user::dsl::*;
+
+        let res = user.filter(email.eq(_email)).get_result::<RawUser>(conn);
 
         match res {
             Ok(_) => true,
