@@ -3,26 +3,25 @@ use actix_web::{HttpRequest, Responder, State, Json, Form, Result};
 
 use common::state::AppState;
 use models::user::*;
-use models::response::RegisterMessage;
+use models::response::Message;
 
-pub fn register(register_user: Form<RegisterUser>, state: State<AppState>) -> Result<Json<RegisterMessage>> {
+pub fn register(register_user: Form<RegisterUser>, state: State<AppState>) -> Result<Json<Message<String>>> {
 
     let conn = &state.conn;
 
+    if register_user.password != register_user.confirm_password {
+
+        return Message::error("两次输入的密码不一致");
+    }
+
     if User::is_user_exist(conn, &*register_user.username) {
 
-        return RegisterMessage {
-            success: false,
-            message: "该用户名已被注册".to_owned()
-        }.respond();
+        return Message::error("该用户名已被注册");
     }
 
     if User::is_email_exist(conn, &*register_user.email) {
 
-        return RegisterMessage {
-            success: false,
-            message: "该邮箱已被注册".to_owned()
-        }.respond();
+        return Message::error("该邮箱已被注册");
     }
 
     let user = register_user.into_user();
@@ -30,17 +29,11 @@ pub fn register(register_user: Form<RegisterUser>, state: State<AppState>) -> Re
     match user.create(conn) {
         Ok(_) => {
 
-            RegisterMessage {
-                success: true,
-                message: "".to_owned()
-            }.respond()
+            Message::success("".to_owned())
         },
         Err(err) => {
 
-            RegisterMessage {
-                success: false,
-                message: err
-            }.respond()
+            Message::error(&*err)
         }
     }
 }

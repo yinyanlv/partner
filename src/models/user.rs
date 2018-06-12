@@ -11,6 +11,7 @@ use common::util::*;
 type Conn = PooledConnection<ConnectionManager<MysqlConnection>>;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct RegisterUser {
     pub username: String,
     pub email: String,

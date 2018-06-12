@@ -1,22 +1,32 @@
 use actix_web::{Result, Json};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum Error {
-    NotFound,
-    Unauthorized,
-    DatabaseError
+pub enum Message<T> {
+    Error {
+        success: bool,
+        message: String,
+    },
+    Success {
+        success: bool,
+        data: T
+    }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RegisterMessage {
-    pub success: bool,
-    pub message: String
-}
+impl<T> Message<T> {
 
-impl RegisterMessage {
-    
-    pub fn respond(&self) ->  Result<Json<Self>> {
+    pub fn success(data: T) -> Result<Json<Message<T>>> {
 
-        Ok(Json(self.clone()))
+        Ok(Json(Message::Success {
+            success: true,
+            data: data
+        }))
+    }
+
+    pub fn error(msg: &str) -> Result<Json<Message<T>>> {
+
+        Ok(Json(Message::Error {
+            success: false,
+            message: msg.to_owned()
+        }))
     }
 }
