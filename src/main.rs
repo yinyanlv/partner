@@ -25,6 +25,7 @@ use actix_web::{server, App, http, middleware};
 use actix_web::middleware::session::SessionStorage;
 use actix_redis::RedisSessionBackend;
 use controllers::user;
+use controllers::error;
 use common::state::AppState;
 
 fn main() {
@@ -38,27 +39,36 @@ fn main() {
     let actix_sys = actix::System::new("partner");
 
     server::new(|| {
-        App::with_state(AppState::new())
-            .middleware(middleware::Logger::default())
-            .middleware(SessionStorage::new(
-                RedisSessionBackend::new("127.0.0.1:6379", &[0;32])
-            ))
-            .prefix("/api")
-            .resource("/register", |r| {
-                r.method(http::Method::POST).with2(user::register)
-            })
-            .resource("/login", |r| {
-                r.method(http::Method::POST).with2(user::login)
-            })
-            .resource("/user/update", |r| {
-                r.method(http::Method::PUT).with2(user::update)
-            })
-            .resource("/user/delete", |r| {
-                r.method(http::Method::DELETE).with2(user::delete)
-            })
-            .resource("/modify-password", |r| {
-                r.method(http::Method::PUT).with2(user::modify_password)
-            })
+            vec![
+                App::with_state(AppState::new())
+                    .middleware(middleware::Logger::default())
+                    .middleware(SessionStorage::new(
+                        RedisSessionBackend::new("127.0.0.1:6379", &[0;32])
+                    ))
+                    .prefix("/api")
+                    .resource("/register", |r| {
+                        r.method(http::Method::POST).with2(user::register)
+                    })
+                    .resource("/login", |r| {
+                        r.method(http::Method::POST).with2(user::login)
+                    })
+                    .resource("/user/update", |r| {
+                        r.method(http::Method::PUT).with2(user::update)
+                    })
+                    .resource("/user/delete", |r| {
+                        r.method(http::Method::DELETE).with2(user::delete)
+                    })
+                    .resource("/modify-password", |r| {
+                        r.method(http::Method::PUT).with2(user::modify_password)
+                    })
+                    .default_resource(|r| {
+                        r.f(error::not_found)
+                    }),
+                App::with_state(AppState::new())
+                    .default_resource(|r| {
+                        r.f(error::not_found)
+                    })
+            ]
         })
         .bind("127.0.0.1:8888")
         .expect("can't bind to port 8888")
