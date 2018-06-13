@@ -6,6 +6,7 @@ extern crate actix_redis;
 #[macro_use]
 extern crate diesel;
 extern crate dotenv;
+extern crate env_logger;
 #[macro_use]
 extern crate lazy_static;
 extern crate serde;
@@ -24,6 +25,7 @@ use std::sync::Arc;
 use actix_web::{server, App, http, middleware};
 use actix_web::middleware::session::SessionStorage;
 use actix_redis::RedisSessionBackend;
+
 use controllers::user;
 use controllers::error;
 use common::state::AppState;
@@ -33,7 +35,10 @@ fn main() {
     let config = dotenv::var("CONFIG").expect("CONFIG must be set in .env file");
 
     if config == "dev" {
+        std::env::set_var("RUST_LOG", "actix_web=info,actix_redis=info");
         std::env::set_var("RUST_BACKTRACE", "1");
+
+        env_logger::init();
     }
 
     let actix_sys = actix::System::new("partner");
@@ -64,10 +69,10 @@ fn main() {
                     .default_resource(|r| {
                         r.f(error::not_found)
                     }),
-                App::with_state(AppState::new())
-                    .default_resource(|r| {
-                        r.f(error::not_found)
-                    })
+                // App::with_state(AppState::new())
+                //     .default_resource(|r| {
+                //         r.f(error::not_found)
+                //     })
             ]
         })
         .bind("127.0.0.1:8888")

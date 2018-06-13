@@ -1,12 +1,13 @@
+use actix_web::middleware::session::RequestSession;
 use actix_web::{HttpRequest, Responder, State, Form};
 
 use common::state::AppState;
 use models::user::*;
 use models::response::{Message, MessageResult};
 
-pub fn register(register_user: Form<RegisterUser>, state: State<AppState>) -> MessageResult<String> {
+pub fn register(req: HttpRequest<AppState>, register_user: Form<RegisterUser>) -> MessageResult<String> {
 
-    let conn = &state.conn;
+    let conn = &req.state().conn;
 
     if register_user.password != register_user.confirm_password {
 
@@ -37,19 +38,27 @@ pub fn register(register_user: Form<RegisterUser>, state: State<AppState>) -> Me
     }
 }
 
-pub fn login(login_user: Form<LoginUser>, state: State<AppState>) -> MessageResult<String> {
+pub fn login(req: HttpRequest<AppState>, login_user: Form<LoginUser>) -> MessageResult<String> {
 
-    let conn = &state.conn;
+    let conn = &req.state().conn;
 
     match login_user.validate(conn) {
-        Ok(data) => Message::success("登录成功".to_owned()),
+        Ok(data) => {
+
+            req.session().set("user", data);
+            Message::success("登录成功".to_owned())
+        },
         Err(err) => Message::error("用户名或密码错误")
     }
 }
 
-pub fn update(update_user: Form<UpdateUser>, state: State<AppState>) -> MessageResult<String> {
+pub fn update(req: HttpRequest<AppState>, update_user: Form<UpdateUser>) -> MessageResult<String> {
 
-    let conn = &state.conn;
+    let user = req.session().get::<RawUser>("user");
+
+    println!("current user: {:?}", user);
+
+    let conn = &req.state().conn;
 
     if !update_user.is_email_updateable(conn) {
 
@@ -67,9 +76,9 @@ pub fn update(update_user: Form<UpdateUser>, state: State<AppState>) -> MessageR
     }
 }
 
-pub fn delete(delete_user: Form<DeleteUser>, state: State<AppState>) -> MessageResult<String> {
+pub fn delete(req: HttpRequest<AppState>, delete_user: Form<DeleteUser>) -> MessageResult<String> {
 
-    let conn = &state.conn;
+    let conn = &req.state().conn;
     
     match delete_user.delete(conn) {
         Ok(data) => {
@@ -84,9 +93,9 @@ pub fn delete(delete_user: Form<DeleteUser>, state: State<AppState>) -> MessageR
     }
 }
 
-pub fn modify_password(modify_password_user: Form<ModifyPasswordUser>, state: State<AppState>) -> MessageResult<String> {
+pub fn modify_password(req: HttpRequest<AppState>, modify_password_user: Form<ModifyPasswordUser>) -> MessageResult<String> {
     
-    let conn = &state.conn;
+    let conn = &req.state().conn;
 
     if modify_password_user.new_password != modify_password_user.confirm_new_password {
 
