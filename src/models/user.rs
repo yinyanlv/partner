@@ -48,15 +48,27 @@ pub struct LoginUser {
 }
 
 impl LoginUser {
-    pub fn validate(&self, conn: &Conn) -> Result<bool, bool> {
-        
-        let is_user_exist = User::is_user_exist(conn, &*self.username);
+    pub fn validate(&self, conn: &Conn) -> Result<RawUser, bool> {
 
-        if !is_user_exist {
-            return Err(false);   
+        use common::schema::user::dsl::*;
+
+        let cur_user = User::get_user(conn, &*self.username);
+
+        match cur_user {
+
+            Ok(data) => {
+                let cur_password = md5_encode(&*format!("{}{}", self.password.clone(), &*data.salt));
+
+                if cur_password == data.password {
+                    Ok(data)
+                } else {
+                    Err(false)
+                }
+            },
+            Err(_) => {
+                Err(false)
+            }
         }
-
-        Ok(true) 
     }
 }
 
@@ -68,6 +80,51 @@ pub struct UpdateUser {
     pub phone: String
 }
 
+impl UpdateUser {
+
+    pub fn update(&self, conn: &Conn) -> QueryResult<usize> {
+        use common::schema::user::dsl::*;
+
+        diesel::update(user.filter(username.eq(&self.username)))
+            .set((
+                nickname.eq(self.nickname.clone()),
+                email.eq(self.email.clone()),
+                phone.eq(self.phone.clone())
+            ))
+            .execute(conn)
+    }
+
+    pub fn is_email_updateable(&self, conn: &Conn) -> bool {
+        use common::schema::user::dsl::*;
+
+        let res = user
+                    .filter(username.ne(&self.username).and(email.eq(&self.email)))
+                    .get_result::<RawUser>(conn);
+
+        match res {
+            Ok(_) => false,
+            Err(_) => true
+        }
+    }
+
+    pub fn is_phone_updateable(&self, conn: &Conn) -> bool {
+        use common::schema::user::dsl::*;
+
+        if self.phone == "" {
+            return true;
+        }
+
+        let res = user
+                    .filter(username.ne(&self.username).and(phone.eq(&self.phone)))
+                    .get_result::<RawUser>(conn);
+
+        match res {
+            Ok(_) => false,
+            Err(_) => true
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DeleteUser {
     pub username: String
@@ -75,13 +132,61 @@ pub struct DeleteUser {
 
 impl DeleteUser {
 
-    pub fn delete(&self, conn: &Conn) -> Result<String, String> {
+    pub fn delete(&self, conn: &Conn) -> QueryResult<usize> {
 
         use common::schema::user::dsl::*;
 
-        diesel::delete(user.filter(username.eq(&self.username))).execute(conn);
+        diesel::delete(user.filter(username.eq(&self.username))).execute(conn)
+    }
+}
 
-        Ok("delete success".to_owned())
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ModifyPasswordUser {
+    pub username: String,
+    pub password: String,
+    pub new_password: String,
+    pub confirm_new_password: String
+}
+
+impl ModifyPasswordUser {
+
+    pub fn validate(&self, conn: &Conn) -> Result<RawUser, bool> {
+
+        use common::schema::user::dsl::*;
+
+        let cur_user = User::get_user(conn, &*self.username);
+
+        match cur_user {
+
+            Ok(data) => {
+                let cur_password = md5_encode(&*format!("{}{}", self.password.clone(), &*data.salt));
+
+                if cur_password == data.password {
+                    Ok(data)
+                } else {
+                    Err(false)
+                }
+            },
+            Err(_) => {
+                Err(false)
+            }
+        }
+    }
+
+    pub fn modify_password(&self, conn: &Conn) -> QueryResult<usize> {
+
+        use common::schema::user::dsl::*;
+        
+        let new_salt = random_string(8);
+        let new_password = md5_encode(&*format!("{}{}", self.new_password.clone(), &*new_salt));
+
+        diesel::update(user.filter(username.eq(&self.username)))
+               .set((
+                    password.eq(new_password),
+                    salt.eq(new_salt)
+                ))
+                .execute(conn)
     }
 }
 
@@ -132,11 +237,11 @@ impl User {
         Ok("update success".to_owned())
     }
 
-    pub fn is_user_exist(conn: &Conn, _username: &str) -> bool {
+    pub fn is_user_exist(conn: &Conn, cur_username: &str) -> bool {
 
         use common::schema::user::dsl::*;
 
-        let res = user.filter(username.eq(_username)).get_result::<RawUser>(conn);
+        let res = User::get_user(conn, cur_username);
 
         match res {
             Ok(_) => true,
@@ -144,11 +249,30 @@ impl User {
         }
     }
 
-    pub fn is_email_exist(conn: &Conn, _email: &str) -> bool {
+    pub fn get_user(conn: &Conn, cur_username: &str) -> QueryResult<RawUser> {
 
         use common::schema::user::dsl::*;
 
-        let res = user.filter(email.eq(_email)).get_result::<RawUser>(conn);
+        user.filter(username.eq(cur_username)).get_result::<RawUser>(conn)
+    }
+
+    pub fn is_email_exist(conn: &Conn, cur_email: &str) -> bool {
+
+        use common::schema::user::dsl::*;
+
+        let res = user.filter(email.eq(cur_email)).get_result::<RawUser>(conn);
+
+        match res {
+            Ok(_) => true,
+            Err(_) => false
+        }
+    }
+
+     pub fn is_phone_exist(conn: &Conn, cur_phone: &str) -> bool {
+
+        use common::schema::user::dsl::*;
+
+        let res = user.filter(phone.eq(cur_phone)).get_result::<RawUser>(conn);
 
         match res {
             Ok(_) => true,

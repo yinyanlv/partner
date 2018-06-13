@@ -1,11 +1,10 @@
-use std::sync::Arc;
-use actix_web::{HttpRequest, Responder, State, Json, Form, Result};
+use actix_web::{HttpRequest, Responder, State, Form};
 
 use common::state::AppState;
 use models::user::*;
-use models::response::Message;
+use models::response::{Message, MessageResult};
 
-pub fn register(register_user: Form<RegisterUser>, state: State<AppState>) -> Result<Json<Message<String>>> {
+pub fn register(register_user: Form<RegisterUser>, state: State<AppState>) -> MessageResult<String> {
 
     let conn = &state.conn;
 
@@ -38,36 +37,75 @@ pub fn register(register_user: Form<RegisterUser>, state: State<AppState>) -> Re
     }
 }
 
-pub fn login(login_user: Form<LoginUser>, state: State<AppState>) -> impl Responder {
+pub fn login(login_user: Form<LoginUser>, state: State<AppState>) -> MessageResult<String> {
 
     let conn = &state.conn;
 
-    let res = match login_user.validate(conn) {
-        Ok(msg) => msg,
-        Err(err) => err
-    };
-
-    ""
+    match login_user.validate(conn) {
+        Ok(data) => Message::success("登录成功".to_owned()),
+        Err(err) => Message::error("用户名或密码错误")
+    }
 }
 
-pub fn update(update_user: Form<UpdateUser>, state: State<AppState>) -> impl Responder {
+pub fn update(update_user: Form<UpdateUser>, state: State<AppState>) -> MessageResult<String> {
 
-    "update"
+    let conn = &state.conn;
+
+    if !update_user.is_email_updateable(conn) {
+
+        return Message::error("该邮箱已被注册");
+    }
+
+    if !update_user.is_phone_updateable(conn) {
+
+         return Message::error("该手机号已被绑定");
+    }
+
+    match update_user.update(conn) {
+        Ok(_) => Message::success("用户信息修改成功".to_owned()),
+        Err(err) => Message::error(&*err.to_string())
+    }
 }
 
-pub fn delete(delete_user: Form<DeleteUser>, state: State<AppState>) -> impl Responder {
+pub fn delete(delete_user: Form<DeleteUser>, state: State<AppState>) -> MessageResult<String> {
 
     let conn = &state.conn;
     
-    let res = match delete_user.delete(conn) {
-        Ok(msg) => msg,
-        Err(err) => err
-    };
+    match delete_user.delete(conn) {
+        Ok(data) => {
 
-    res
+            if data == 0 {
+                Message::error("删除用户失败，该用户不存在")
+            } else {
+                Message::success("删除用户成功".to_owned())
+            }
+        },
+        Err(err) => Message::error(&*err.to_string())
+    }
 }
 
-pub fn reset_password(req: HttpRequest<AppState>) -> impl Responder {
+pub fn modify_password(modify_password_user: Form<ModifyPasswordUser>, state: State<AppState>) -> MessageResult<String> {
+    
+    let conn = &state.conn;
 
-    "reset"
+    if modify_password_user.new_password != modify_password_user.confirm_new_password {
+
+        return Message::error("您两次输入的新密码不一致");
+    }    
+
+    match modify_password_user.validate(conn) {
+
+        Ok(data) => {
+
+            match modify_password_user.modify_password(conn) {
+                Ok(_) => {
+                    Message::success("密码修改成功，请重新登录".to_owned())
+                },
+                Err(err) => {
+                    Message::error(&*err.to_string())
+                }
+            }
+        },
+        Err(_) => Message::error("您输入的原密码不正确")
+    }
 }

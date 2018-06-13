@@ -1,5 +1,8 @@
 use actix_web::{Result, Json};
 
+pub type MessageResult<T> = Result<Json<Message<T>>>; 
+
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Message<T> {
     Error {

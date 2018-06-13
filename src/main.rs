@@ -50,14 +50,14 @@ fn main() {
             .resource("/login", |r| {
                 r.method(http::Method::POST).with2(user::login)
             })
-            .resource("/update", |r| {
+            .resource("/user/update", |r| {
                 r.method(http::Method::PUT).with2(user::update)
             })
-            .resource("/delete", |r| {
+            .resource("/user/delete", |r| {
                 r.method(http::Method::DELETE).with2(user::delete)
             })
-            .resource("/reset-password", |r| {
-                r.method(http::Method::PUT).f(user::reset_password)
+            .resource("/modify-password", |r| {
+                r.method(http::Method::PUT).with2(user::modify_password)
             })
         })
         .bind("127.0.0.1:8888")
