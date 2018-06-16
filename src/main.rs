@@ -27,6 +27,7 @@ use actix_web::middleware::session::SessionStorage;
 use actix_redis::RedisSessionBackend;
 
 use controllers::user;
+use controllers::work_record;
 use controllers::error;
 use common::state::AppState;
 
@@ -65,6 +66,21 @@ fn main() {
                     })
                     .resource("/modify-password", |r| {
                         r.method(http::Method::PUT).with2(user::modify_password)
+                    })
+                    .resource("/work-record/create", |r| {
+                        r.method(http::Method::POST).with2(work_record::create)
+                    })
+                    .resource("/work-record/update", |r| {
+                        r.method(http::Method::PUT).with2(work_record::update)
+                    })
+                    .resource("/work-record/get-records", |r| {
+                        r.method(http::Method::GET).with2(work_record::get_records)
+                    })
+                    .resource("/work-record/get-record", |r| {
+                        r.method(http::Method::GET).with2(work_record::get_record)
+                    })
+                    .resource("/work-record/delete", |r| {
+                        r.method(http::Method::DELETE).with2(work_record::delete)
                     })
                     .default_resource(|r| {
                         r.f(error::not_found)

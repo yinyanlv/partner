@@ -1,5 +1,5 @@
+use actix_web::{HttpRequest, Form};
 use actix_web::middleware::session::RequestSession;
-use actix_web::{HttpRequest, Responder, State, Form};
 
 use common::state::AppState;
 use models::user::*;

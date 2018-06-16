@@ -1,9 +1,9 @@
 use actix_web::error;
 use diesel;
 use diesel::prelude::*;
-use chrono::{Local, NaiveDateTime};
 use diesel::prelude::MysqlConnection;
 use diesel::r2d2::{ConnectionManager, Pool, PooledConnection};
+use chrono::{Local, NaiveDateTime};
 
 use common::schema::user;
 use common::util::*;
@@ -97,14 +97,9 @@ impl UpdateUser {
     pub fn is_email_updateable(&self, conn: &Conn) -> bool {
         use common::schema::user::dsl::*;
 
-        let res = user
-                    .filter(username.ne(&self.username).and(email.eq(&self.email)))
-                    .get_result::<RawUser>(conn);
-
-        match res {
-            Ok(_) => false,
-            Err(_) => true
-        }
+        !user
+            .filter(username.ne(&self.username).and(email.eq(&self.email)))
+            .get_result::<RawUser>(conn).is_ok()
     }
 
     pub fn is_phone_updateable(&self, conn: &Conn) -> bool {
@@ -114,14 +109,9 @@ impl UpdateUser {
             return true;
         }
 
-        let res = user
-                    .filter(username.ne(&self.username).and(phone.eq(&self.phone)))
-                    .get_result::<RawUser>(conn);
-
-        match res {
-            Ok(_) => false,
-            Err(_) => true
-        }
+        !user
+            .filter(username.ne(&self.username).and(phone.eq(&self.phone)))
+            .get_result::<RawUser>(conn).is_ok()
     }
 }
 
@@ -241,12 +231,7 @@ impl User {
 
         use common::schema::user::dsl::*;
 
-        let res = User::get_user(conn, cur_username);
-
-        match res {
-            Ok(_) => true,
-            Err(_) => false
-        }
+        User::get_user(conn, cur_username).is_ok()
     }
 
     pub fn get_user(conn: &Conn, cur_username: &str) -> QueryResult<RawUser> {
@@ -260,23 +245,13 @@ impl User {
 
         use common::schema::user::dsl::*;
 
-        let res = user.filter(email.eq(cur_email)).get_result::<RawUser>(conn);
-
-        match res {
-            Ok(_) => true,
-            Err(_) => false
-        }
+        user.filter(email.eq(cur_email)).get_result::<RawUser>(conn).is_ok()
     }
 
      pub fn is_phone_exist(conn: &Conn, cur_phone: &str) -> bool {
 
         use common::schema::user::dsl::*;
 
-        let res = user.filter(phone.eq(cur_phone)).get_result::<RawUser>(conn);
-
-        match res {
-            Ok(_) => true,
-            Err(_) => false
-        }
+        user.filter(phone.eq(cur_phone)).get_result::<RawUser>(conn).is_ok()
     }
 }
