@@ -13,7 +13,9 @@ pub struct RawWorkEvent {
     pub id: i32,
     pub record_id: i32,
     pub start_time: NaiveDateTime,
-    pub end_time: NaiveDateTime
+    pub end_time: NaiveDateTime,
+    pub create_time: NaiveDateTime,
+    pub update_time: NaiveDateTime
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -57,9 +59,24 @@ impl WorkEvent {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeleteEvents;
+pub struct QueryWorkEvents;
 
-impl DeleteEvents {
+impl QueryWorkEvents {
+
+    pub fn query(conn: &Conn, cur_record_id: i32) -> QueryResult<Vec<RawWorkEvent>> {
+
+        use common::schema::work_event::dsl::*;
+
+        work_event.filter(record_id.eq(cur_record_id))
+                    .order(create_time.asc())
+                    .load::<RawWorkEvent>(conn)
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeleteWorkEvents;
+
+impl DeleteWorkEvents {
 
     pub fn delete(&self, conn: &Conn, cur_record_id: i32) -> QueryResult<usize> {
 
