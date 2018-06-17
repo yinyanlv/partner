@@ -13,29 +13,69 @@ pub fn create(req: HttpRequest<AppState>, create_work_record: Form<CreateWorkRec
     match work_record.create(conn, &create_work_record.events) {
 
         Ok(data) => {
+
             Message::success("success".to_owned())
         },
 
         Err(err) => {
 
-            Message::error("err")
+            Message::error("error")
         }
     }
 }
 
-pub fn update(req: HttpRequest<AppState>, work_record: Form<WorkRecord>) -> MessageResult<String> {
+pub fn update(req: HttpRequest<AppState>, update_work_record: Form<UpdateWorkRecord>) -> MessageResult<String> {
 
-    Message::success("success".to_owned())
+    let conn = &req.state().conn;
+
+    match update_work_record.update(conn, &update_work_record.events) {
+
+        Ok(data) => {
+
+            Message::success("success".to_owned())
+        },
+
+        Err(err) => {
+
+            Message::error("error")
+        }
+    }
 }
 
-pub fn get_records(req: HttpRequest<AppState>, work_record: Form<WorkRecord>) -> MessageResult<String> {
+pub fn get_records(req: HttpRequest<AppState>, query_month_work_record: Form<QueryMonthWorkRecord>) -> MessageResult<String> {
 
-    Message::success("success".to_owned())
+    let conn = &req.state().conn;
+    
+    match query_month_work_record.query(conn) {
+
+        Ok(data) => {
+
+            Message::success("success".to_owned())
+        },
+
+        Err(err) => {
+
+            Message::error("error")
+        }
+    }
 }
 
-pub fn get_record(req: HttpRequest<AppState>, work_record: Form<WorkRecord>) -> MessageResult<String> {
+pub fn get_record(req: HttpRequest<AppState>, query_work_record: Form<QueryWorkRecord>) -> MessageResult<String> {
 
-    Message::success("success".to_owned())
+    let conn = &req.state().conn;
+
+    match query_work_record.query(conn) {
+
+        Ok(data) => {
+
+            Message::success("success".to_owned())
+        },
+
+        Err(err) => {
+
+            Message::error("error")
+        }
+    }
 }
 
 pub fn delete(req: HttpRequest<AppState>, delete_work_record: Form<DeleteWorkRecord>) -> MessageResult<String> {
@@ -45,12 +85,13 @@ pub fn delete(req: HttpRequest<AppState>, delete_work_record: Form<DeleteWorkRec
     match delete_work_record.delete(conn) {
 
         Ok(data) => {
+
             Message::success("success".to_owned())
         },
 
         Err(err) => {
 
-            Message::error("err")
+            Message::error("error")
         }
     }
 }

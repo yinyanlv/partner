@@ -45,6 +45,7 @@ impl CreateWorkRecord {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UpdateWorkRecord {
+    pub id: i32,
     pub username: String,
     pub day: NaiveDate,
     pub overtime: f32,
@@ -52,16 +53,48 @@ pub struct UpdateWorkRecord {
 }
 
 impl UpdateWorkRecord {
-    
-    pub fn into_work_record(&self) -> WorkRecord {
 
-        WorkRecord {
-            username: self.username.clone(),
-            day: self.day.clone(),
-            overtime: self.overtime,
-            create_time: Local::now().naive_utc(),
-            update_time: Local::now().naive_utc()
+    pub fn update(&self, conn: &Conn, events: &Vec<CreateWorkEvent>) -> QueryResult<usize> {
+
+        use common::schema::work_record::dsl::*;
+
+        if events.len() == 0 && self.overtime == 0.0 {
+
+            let delete_record = DeleteWorkRecord {
+                username: self.username.clone(),
+                record_id: self.id
+            };
+            
+            return delete_record.delete(conn);
         }
+
+        let num = diesel::update(work_record.filter(id.eq(self.id)))
+                            .set((
+                                overtime.eq(self.overtime),
+                                update_time.eq(Local::now().naive_utc())
+                            ))
+                            .execute(conn)
+                            .unwrap();
+        
+        DeleteWorkEvents.delete(conn, self.id);
+
+        if events.len() > 0 {
+
+            let mut new_events = vec![];
+            let now = Local::now().naive_utc();
+
+            for event in events {
+                
+                new_events.push(event.into_work_event(self.id, &now));
+            }
+
+            if new_events.len() > 0 {
+            
+                WorkEvent::create(conn, &new_events);
+            }
+        }
+
+        Ok(num)
     }
 }
 
@@ -97,10 +130,6 @@ impl WorkRecord {
         }
 
         Ok(last_insert_id)
-    }
-
-    pub fn update(&self, conn: &Conn) {
-
     }
 }
 
@@ -158,6 +187,7 @@ pub struct QueryMonthWorkRecord {
 impl QueryMonthWorkRecord {
 
     pub fn query(&self, conn: &Conn) -> QueryResult<Vec<WorkRecordEvents>> {
+
         use common::schema::work_record::dsl::*;
 
         let first_day = NaiveDate::from_ymd(self.year, self.month, 1);
