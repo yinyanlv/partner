@@ -1,11 +1,11 @@
-use actix_web::{HttpRequest, Form};
+use actix_web::{HttpRequest, Json};
 use actix_web::middleware::session::RequestSession;
 
 use common::state::AppState;
 use models::user::*;
 use models::response::{Message, MessageResult};
 
-pub fn register(req: HttpRequest<AppState>, register_user: Form<RegisterUser>) -> MessageResult<String> {
+pub fn register(req: HttpRequest<AppState>, register_user: Json<RegisterUser>) -> MessageResult<String> {
 
     let conn = &req.state().conn;
 
@@ -38,7 +38,7 @@ pub fn register(req: HttpRequest<AppState>, register_user: Form<RegisterUser>) -
     }
 }
 
-pub fn login(req: HttpRequest<AppState>, login_user: Form<LoginUser>) -> MessageResult<String> {
+pub fn login(req: HttpRequest<AppState>, login_user: Json<LoginUser>) -> MessageResult<String> {
 
     let conn = &req.state().conn;
 
@@ -52,7 +52,7 @@ pub fn login(req: HttpRequest<AppState>, login_user: Form<LoginUser>) -> Message
     }
 }
 
-pub fn update(req: HttpRequest<AppState>, update_user: Form<UpdateUser>) -> MessageResult<String> {
+pub fn update(req: HttpRequest<AppState>, update_user: Json<UpdateUser>) -> MessageResult<String> {
 
     let user = req.session().get::<RawUser>("user");
 
@@ -76,7 +76,7 @@ pub fn update(req: HttpRequest<AppState>, update_user: Form<UpdateUser>) -> Mess
     }
 }
 
-pub fn delete(req: HttpRequest<AppState>, delete_user: Form<DeleteUser>) -> MessageResult<String> {
+pub fn delete(req: HttpRequest<AppState>, delete_user: Json<DeleteUser>) -> MessageResult<String> {
 
     let conn = &req.state().conn;
     
@@ -93,7 +93,7 @@ pub fn delete(req: HttpRequest<AppState>, delete_user: Form<DeleteUser>) -> Mess
     }
 }
 
-pub fn modify_password(req: HttpRequest<AppState>, modify_password_user: Form<ModifyPasswordUser>) -> MessageResult<String> {
+pub fn modify_password(req: HttpRequest<AppState>, modify_password_user: Json<ModifyPasswordUser>) -> MessageResult<String> {
     
     let conn = &req.state().conn;
 

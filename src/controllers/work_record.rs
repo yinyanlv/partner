@@ -1,11 +1,11 @@
-use actix_web::{HttpRequest, Form};
+use actix_web::{HttpRequest, Json};
 use actix_web::middleware::session::RequestSession;
 
 use common::state::AppState;
 use models::work_record::*;
 use models::response::{Message, MessageResult};
 
-pub fn create(req: HttpRequest<AppState>, create_work_record: Form<CreateWorkRecord>) -> MessageResult<String> {
+pub fn create(req: HttpRequest<AppState>, create_work_record: Json<CreateWorkRecord>) -> MessageResult<String> {
 
     let conn = &req.state().conn;
     let work_record = create_work_record.into_work_record();
@@ -24,7 +24,7 @@ pub fn create(req: HttpRequest<AppState>, create_work_record: Form<CreateWorkRec
     }
 }
 
-pub fn update(req: HttpRequest<AppState>, update_work_record: Form<UpdateWorkRecord>) -> MessageResult<String> {
+pub fn update(req: HttpRequest<AppState>, update_work_record: Json<UpdateWorkRecord>) -> MessageResult<String> {
 
     let conn = &req.state().conn;
 
@@ -42,7 +42,7 @@ pub fn update(req: HttpRequest<AppState>, update_work_record: Form<UpdateWorkRec
     }
 }
 
-pub fn get_records(req: HttpRequest<AppState>, query_month_work_record: Form<QueryMonthWorkRecord>) -> MessageResult<String> {
+pub fn get_records(req: HttpRequest<AppState>, query_month_work_record: Json<QueryMonthWorkRecord>) -> MessageResult<String> {
 
     let conn = &req.state().conn;
     
@@ -60,7 +60,7 @@ pub fn get_records(req: HttpRequest<AppState>, query_month_work_record: Form<Que
     }
 }
 
-pub fn get_record(req: HttpRequest<AppState>, query_work_record: Form<QueryWorkRecord>) -> MessageResult<String> {
+pub fn get_record(req: HttpRequest<AppState>, query_work_record: Json<QueryWorkRecord>) -> MessageResult<String> {
 
     let conn = &req.state().conn;
 
@@ -78,7 +78,7 @@ pub fn get_record(req: HttpRequest<AppState>, query_work_record: Form<QueryWorkR
     }
 }
 
-pub fn delete(req: HttpRequest<AppState>, delete_work_record: Form<DeleteWorkRecord>) -> MessageResult<String> {
+pub fn delete(req: HttpRequest<AppState>, delete_work_record: Json<DeleteWorkRecord>) -> MessageResult<String> {
 
     let conn = &req.state().conn;
 

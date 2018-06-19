@@ -22,8 +22,8 @@ mod controllers;
 mod models;
 
 use std::sync::Arc;
-use actix_web::{server, App, http, middleware};
-use actix_web::middleware::session::SessionStorage;
+use actix_web::{server, App, http::{self, header, Method}, middleware::{self, session::SessionStorage, cors::Cors}};
+// use actix_web::middleware::session::SessionStorage;
 use actix_redis::RedisSessionBackend;
 
 use controllers::user;
@@ -45,13 +45,19 @@ fn main() {
     let actix_sys = actix::System::new("partner");
 
     server::new(|| {
-            vec![
-                App::with_state(AppState::new())
-                    .middleware(middleware::Logger::default())
-                    .middleware(SessionStorage::new(
-                        RedisSessionBackend::new("127.0.0.1:6379", &[0;32])
-                    ))
-                    .prefix("/api")
+            App::with_state(AppState::new())
+                .middleware(middleware::Logger::default())
+                .middleware(SessionStorage::new(
+                    RedisSessionBackend::new("127.0.0.1:6379", &[0;32])
+                ))
+                .prefix("/api")
+                .configure(|app| {
+                    Cors::for_app(app)
+                    .allowed_origin("http://localhost:4200")
+                    .allowed_methods(vec!["GET", "POST", "PUT", "DELETE"])
+                    .allowed_headers(vec![http::header::ACCEPT])
+                    .allowed_header(header::CONTENT_TYPE)
+                    .max_age(3600)
                     .resource("/register", |r| {
                         r.method(http::Method::POST).with2(user::register)
                     })
@@ -82,14 +88,11 @@ fn main() {
                     .resource("/work-record/delete", |r| {
                         r.method(http::Method::DELETE).with2(work_record::delete)
                     })
-                    .default_resource(|r| {
+                    .register()
+                })
+                .default_resource(|r| {
                         r.f(error::not_found)
-                    }),
-                // App::with_state(AppState::new())
-                //     .default_resource(|r| {
-                //         r.f(error::not_found)
-                //     })
-            ]
+                })
         })
         .bind("127.0.0.1:8888")
         .expect("can't bind to port 8888")
