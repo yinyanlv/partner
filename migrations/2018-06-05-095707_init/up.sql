@@ -16,11 +16,12 @@ CREATE TABLE `user` (
 CREATE TABLE `work_record` (
     `id` int(32) PRIMARY KEY AUTO_INCREMENT NOT NULL,
     `username` varchar(20) NOT NULL,
-    `day` date NOT NULL,
+    `date` date NOT NULL,
     `overtime` float(4,2) DEFAULT 0.0,
     `create_time` datetime NOT NULL,
     `update_time` datetime NOT NULL,
     KEY `username` (`username`),
+    UNIQUE KEY `date` (`date`),
     CONSTRAINT `work_record_ibfk_1` FOREIGN KEY (`username`) REFERENCES `user` (`username`)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8;
 
@@ -29,6 +30,7 @@ CREATE TABLE `work_event` (
     `record_id` int(32) NOT NULL,
     `start_time` datetime NOT NULL,
     `end_time` datetime NOT NULL,
+    `note` varchar(200),
     `create_time` datetime NOT NULL,
     `update_time` datetime NOT NULL,
     KEY `record_id` (`record_id`),

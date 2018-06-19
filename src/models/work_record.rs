@@ -15,7 +15,7 @@ type Conn = PooledConnection<ConnectionManager<MysqlConnection>>;
 pub struct RawWorkRecord {
     pub id: i32,
     pub username: String,
-    pub day: NaiveDate,
+    pub date: NaiveDate,
     pub overtime: Option<f32>,
     pub create_time: NaiveDateTime,
     pub update_time: NaiveDateTime
@@ -24,7 +24,7 @@ pub struct RawWorkRecord {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CreateWorkRecord {
     pub username: String,
-    pub day: NaiveDate,
+    pub date: DateTime<Utc>,
     pub overtime: f32,
     pub events: Vec<CreateWorkEvent>
 }
@@ -35,7 +35,7 @@ impl CreateWorkRecord {
 
         WorkRecord {
             username: self.username.clone(),
-            day: self.day.clone(),
+            date: self.date.naive_utc().date(),
             overtime: self.overtime,
             create_time: Local::now().naive_utc(),
             update_time: Local::now().naive_utc()
@@ -47,7 +47,7 @@ impl CreateWorkRecord {
 pub struct UpdateWorkRecord {
     pub id: i32,
     pub username: String,
-    pub day: NaiveDate,
+    pub date: NaiveDate,
     pub overtime: f32,
     pub events: Vec<CreateWorkEvent>
 }
@@ -102,7 +102,7 @@ impl UpdateWorkRecord {
 #[table_name="work_record"]
 pub struct WorkRecord {
     pub username: String,
-    pub day: NaiveDate,
+    pub date: NaiveDate,
     pub overtime: f32,
     pub create_time: NaiveDateTime,
     pub update_time: NaiveDateTime
@@ -137,7 +137,7 @@ impl WorkRecord {
 pub struct WorkRecordEvents {
     pub id: i32,
     pub username: String,
-    pub day: NaiveDate,
+    pub date: NaiveDate,
     pub overtime: Option<f32>,
     pub create_time: NaiveDateTime,
     pub update_time: NaiveDateTime,
@@ -147,7 +147,7 @@ pub struct WorkRecordEvents {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct QueryWorkRecord {
     pub username: String,
-    pub day: NaiveDate
+    pub date: NaiveDate
 }
 
 impl QueryWorkRecord {
@@ -159,7 +159,7 @@ impl QueryWorkRecord {
         let record = work_record
                         .filter(
                             username.eq(&self.username)
-                                    .and(day.eq(&self.day))
+                                    .and(date.eq(&self.date))
                                 )
                         .get_result::<RawWorkRecord>(conn).unwrap();
         let cur_id = record.id;
@@ -168,7 +168,7 @@ impl QueryWorkRecord {
         Ok(WorkRecordEvents {
                 id: record.id,
                 username: record.username,
-                day: record.day,
+                date: record.date,
                 overtime: record.overtime,
                 create_time: record.create_time,
                 update_time: record.update_time,
@@ -198,8 +198,8 @@ impl QueryMonthWorkRecord {
         let records = work_record
                         .filter(
                             username.eq(&self.username)
-                                    .and(day.ge(first_day))
-                                    .and(day.le(last_day))
+                                    .and(date.ge(first_day))
+                                    .and(date.le(last_day))
                                 )
                         .load::<RawWorkRecord>(conn).unwrap();
 
@@ -211,7 +211,7 @@ impl QueryMonthWorkRecord {
             list.push(WorkRecordEvents {
                 id: record.id,
                 username: record.username,
-                day: record.day,
+                date: record.date,
                 overtime: record.overtime,
                 create_time: record.create_time,
                 update_time: record.update_time,

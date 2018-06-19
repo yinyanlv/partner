@@ -19,6 +19,7 @@ table! {
         record_id -> Integer,
         start_time -> Datetime,
         end_time -> Datetime,
+        note -> Nullable<Varchar>,
         create_time -> Datetime,
         update_time -> Datetime,
     }
@@ -28,7 +29,7 @@ table! {
     work_record (id) {
         id -> Integer,
         username -> Varchar,
-        day -> Date,
+        date -> Date,
         overtime -> Nullable<Float>,
         create_time -> Datetime,
         update_time -> Datetime,

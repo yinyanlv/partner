@@ -2,6 +2,7 @@ use diesel;
 use diesel::prelude::*;
 use diesel::prelude::MysqlConnection;
 use diesel::r2d2::{ConnectionManager, Pool, PooledConnection};
+use chrono::prelude::*;
 use chrono::{Local, NaiveDateTime};
 
 use common::schema::work_event;
@@ -9,20 +10,24 @@ use common::schema::work_event;
 type Conn = PooledConnection<ConnectionManager<MysqlConnection>>;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Queryable)]
+#[serde(rename_all = "camelCase")]
 pub struct RawWorkEvent {
     pub id: i32,
     pub record_id: i32,
     pub start_time: NaiveDateTime,
     pub end_time: NaiveDateTime,
+    pub note: Option<String>,
     pub create_time: NaiveDateTime,
     pub update_time: NaiveDateTime
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct CreateWorkEvent {
     pub record_id: i32,
-    pub start_time: NaiveDateTime,
-    pub end_time: NaiveDateTime
+    pub start_time: DateTime<Utc>,
+    pub end_time: DateTime<Utc>,
+    pub note: String
 }
 
 impl CreateWorkEvent {
@@ -31,8 +36,9 @@ impl CreateWorkEvent {
       
       WorkEvent {
           record_id: record_id,
-          start_time: self.start_time.clone(),
-          end_time: self.end_time.clone(),
+          start_time: self.start_time.naive_utc(),
+          end_time: self.start_time.naive_utc(),
+          note: self.note.clone(),
           create_time: date_time.clone(),
           update_time: date_time.clone() 
       }
@@ -41,10 +47,12 @@ impl CreateWorkEvent {
 
 #[derive(Debug, Clone, Serialize, Deserialize, Insertable)]
 #[table_name="work_event"]
+#[serde(rename_all = "camelCase")]
 pub struct WorkEvent {
     pub record_id: i32,
     pub start_time: NaiveDateTime,
     pub end_time: NaiveDateTime,
+    pub note: String,
     pub create_time: NaiveDateTime,
     pub update_time: NaiveDateTime
 }
