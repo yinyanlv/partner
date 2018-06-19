@@ -23,7 +23,6 @@ mod models;
 
 use std::sync::Arc;
 use actix_web::{server, App, http::{self, header, Method}, middleware::{self, session::SessionStorage, cors::Cors}};
-// use actix_web::middleware::session::SessionStorage;
 use actix_redis::RedisSessionBackend;
 
 use controllers::user;

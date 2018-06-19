@@ -38,21 +38,21 @@ pub fn register(req: HttpRequest<AppState>, register_user: Json<RegisterUser>) -
     }
 }
 
-pub fn login(req: HttpRequest<AppState>, login_user: Json<LoginUser>) -> MessageResult<String> {
+pub fn login(req: HttpRequest<AppState>, login_user: Json<LoginUser>) -> MessageResult<RawUser> {
 
     let conn = &req.state().conn;
 
     match login_user.validate(conn) {
         Ok(data) => {
 
-            req.session().set("user", data);
-            Message::success("登录成功".to_owned())
+            req.session().set("user", data.clone());
+            Message::success(data)
         },
         Err(err) => Message::error("用户名或密码错误")
     }
 }
 
-pub fn update(req: HttpRequest<AppState>, update_user: Json<UpdateUser>) -> MessageResult<String> {
+pub fn update(req: HttpRequest<AppState>, update_user: Json<UpdateUser>) -> MessageResult<RawUser> {
 
     let user = req.session().get::<RawUser>("user");
 
@@ -71,7 +71,7 @@ pub fn update(req: HttpRequest<AppState>, update_user: Json<UpdateUser>) -> Mess
     }
 
     match update_user.update(conn) {
-        Ok(_) => Message::success("用户信息修改成功".to_owned()),
+        Ok(data) => Message::success(data),
         Err(err) => Message::error(&*err.to_string())
     }
 }

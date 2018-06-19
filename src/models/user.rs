@@ -82,7 +82,7 @@ pub struct UpdateUser {
 
 impl UpdateUser {
 
-    pub fn update(&self, conn: &Conn) -> QueryResult<usize> {
+    pub fn update(&self, conn: &Conn) -> QueryResult<RawUser> {
         use common::schema::user::dsl::*;
 
         diesel::update(user.filter(username.eq(&self.username)))
@@ -91,7 +91,9 @@ impl UpdateUser {
                 email.eq(self.email.clone()),
                 phone.eq(self.phone.clone())
             ))
-            .execute(conn)
+            .execute(conn);
+
+        User::get_user(conn, &*self.username)
     }
 
     pub fn is_email_updateable(&self, conn: &Conn) -> bool {
