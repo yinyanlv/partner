@@ -29,7 +29,7 @@ table! {
     work_record (id) {
         id -> Integer,
         username -> Varchar,
-        date -> Date,
+        date -> Datetime,
         overtime -> Nullable<Float>,
         create_time -> Datetime,
         update_time -> Datetime,

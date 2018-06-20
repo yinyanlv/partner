@@ -16,7 +16,7 @@ CREATE TABLE `user` (
 CREATE TABLE `work_record` (
     `id` int(32) PRIMARY KEY AUTO_INCREMENT NOT NULL,
     `username` varchar(20) NOT NULL,
-    `date` date NOT NULL,
+    `date` datetime NOT NULL,
     `overtime` float(4,2) DEFAULT 0.0,
     `create_time` datetime NOT NULL,
     `update_time` datetime NOT NULL,

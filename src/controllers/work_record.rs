@@ -42,7 +42,7 @@ pub fn update(req: HttpRequest<AppState>, update_work_record: Json<UpdateWorkRec
     }
 }
 
-pub fn get_records(req: HttpRequest<AppState>, query_month_work_record: Query<QueryMonthWorkRecord>) -> MessageResult<Vec<WorkRecordResponse>> {
+pub fn get_records(req: HttpRequest<AppState>, query_month_work_record: Json<QueryMonthWorkRecord>) -> MessageResult<Vec<WorkRecordResponse>> {
 
     let conn = &req.state().conn;
     
@@ -60,7 +60,7 @@ pub fn get_records(req: HttpRequest<AppState>, query_month_work_record: Query<Qu
     }
 }
 
-pub fn get_record(req: HttpRequest<AppState>, query_work_record: Query<QueryWorkRecord>) -> MessageResult<WorkRecordResponse> {
+pub fn get_record(req: HttpRequest<AppState>, query_work_record: Json<QueryWorkRecord>) -> MessageResult<WorkRecordResponse> {
 
     let conn = &req.state().conn;
 

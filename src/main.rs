@@ -80,10 +80,10 @@ fn main() {
                         r.method(http::Method::PUT).with2(work_record::update)
                     })
                     .resource("/work-record/get-records", |r| {
-                        r.method(http::Method::GET).with2(work_record::get_records)
+                        r.method(http::Method::POST).with2(work_record::get_records)
                     })
                     .resource("/work-record/get-record", |r| {
-                        r.method(http::Method::GET).with2(work_record::get_record)
+                        r.method(http::Method::POST).with2(work_record::get_record)
                     })
                     .resource("/work-record/delete", |r| {
                         r.method(http::Method::DELETE).with2(work_record::delete)

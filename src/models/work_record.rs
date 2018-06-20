@@ -15,7 +15,7 @@ type Conn = PooledConnection<ConnectionManager<MysqlConnection>>;
 pub struct RawWorkRecord {
     pub id: i32,
     pub username: String,
-    pub date: NaiveDate,
+    pub date: NaiveDateTime,
     pub overtime: Option<f32>,
     pub create_time: NaiveDateTime,
     pub update_time: NaiveDateTime
@@ -35,7 +35,7 @@ impl CreateWorkRecord {
 
         WorkRecord {
             username: self.username.clone(),
-            date: self.date.naive_utc().date(),
+            date: self.date.naive_utc(),
             overtime: self.overtime,
             create_time: Local::now().naive_utc(),
             update_time: Local::now().naive_utc()
@@ -101,7 +101,7 @@ impl UpdateWorkRecord {
 #[table_name="work_record"]
 pub struct WorkRecord {
     pub username: String,
-    pub date: NaiveDate,
+    pub date: NaiveDateTime,
     pub overtime: f32,
     pub create_time: NaiveDateTime,
     pub update_time: NaiveDateTime
@@ -142,7 +142,7 @@ impl WorkRecord {
 pub struct WorkRecordResponse {
     pub id: i32,
     pub username: String,
-    pub date: NaiveDate,
+    pub date: NaiveDateTime,
     pub overtime: Option<f32>,
     pub create_time: NaiveDateTime,
     pub update_time: NaiveDateTime,
@@ -162,10 +162,8 @@ impl QueryWorkRecord {
         use common::schema::work_record::dsl::*;
 
         let record = work_record
-                        .filter(
-                            username.eq(&self.username)
-                                    .and(date.eq(&self.date.naive_utc().date()))
-                                )
+                        .filter(username.eq(&self.username))
+                        .filter(date.eq(&self.date.naive_utc()))
                         .get_result::<RawWorkRecord>(conn).unwrap();
         let cur_id = record.id;
         let events = QueryWorkEvents::query(conn, cur_id).unwrap();
@@ -183,10 +181,11 @@ impl QueryWorkRecord {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct QueryMonthWorkRecord {
     pub username: String, 
-    pub year: i32,
-    pub month: u32
+    pub start_date: DateTime<Utc>,
+    pub end_date: DateTime<Utc>
 }
 
 impl QueryMonthWorkRecord {
@@ -195,17 +194,12 @@ impl QueryMonthWorkRecord {
 
         use common::schema::work_record::dsl::*;
 
-        let first_day = NaiveDate::from_ymd(self.year, self.month, 1);
-        let last_day = NaiveDate::from_ymd(self.year, self.month, QueryMonthWorkRecord::last_day_of_month(self.year, self.month));
-
         let mut list = vec![];
 
         let records = work_record
-                        .filter(
-                            username.eq(&self.username)
-                                    .and(date.ge(first_day))
-                                    .and(date.le(last_day))
-                                )
+                        .filter(username.eq(&self.username))
+                        .filter(date.ge(&self.start_date.naive_utc()))
+                        .filter(date.le(&self.end_date.naive_utc()))
                         .load::<RawWorkRecord>(conn).unwrap();
 
         for record in records {
@@ -225,11 +219,6 @@ impl QueryMonthWorkRecord {
         }
 
         Ok(list)
-    }
-
-    fn last_day_of_month(year: i32, month: u32) -> u32 {
-
-        NaiveDate::from_ymd_opt(year, month + 1, 1).unwrap_or(NaiveDate::from_ymd(year + 1, 1, 1)).pred().day()
     }
 }
 
