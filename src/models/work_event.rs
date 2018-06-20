@@ -37,7 +37,7 @@ impl CreateWorkEvent {
       WorkEvent {
           record_id: record_id,
           start_time: self.start_time.naive_utc(),
-          end_time: self.start_time.naive_utc(),
+          end_time: self.end_time.naive_utc(),
           note: self.note.clone(),
           create_time: date_time.clone(),
           update_time: date_time.clone() 
