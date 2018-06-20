@@ -1,11 +1,11 @@
-use actix_web::{HttpRequest, Json};
+use actix_web::{HttpRequest, Json, Query};
 use actix_web::middleware::session::RequestSession;
 
 use common::state::AppState;
 use models::work_record::*;
 use models::response::{Message, MessageResult};
 
-pub fn create(req: HttpRequest<AppState>, create_work_record: Json<CreateWorkRecord>) -> MessageResult<String> {
+pub fn create(req: HttpRequest<AppState>, create_work_record: Json<CreateWorkRecord>) -> MessageResult<usize> {
 
     let conn = &req.state().conn;
     let work_record = create_work_record.into_work_record();
@@ -14,17 +14,17 @@ pub fn create(req: HttpRequest<AppState>, create_work_record: Json<CreateWorkRec
 
         Ok(data) => {
 
-            Message::success("success".to_owned())
+            Message::success(data)
         },
 
         Err(err) => {
 
-            Message::error("error")
+            Message::error(&*err.to_string())
         }
     }
 }
 
-pub fn update(req: HttpRequest<AppState>, update_work_record: Json<UpdateWorkRecord>) -> MessageResult<String> {
+pub fn update(req: HttpRequest<AppState>, update_work_record: Json<UpdateWorkRecord>) -> MessageResult<usize> {
 
     let conn = &req.state().conn;
 
@@ -32,17 +32,17 @@ pub fn update(req: HttpRequest<AppState>, update_work_record: Json<UpdateWorkRec
 
         Ok(data) => {
 
-            Message::success("success".to_owned())
+            Message::success(data)
         },
 
         Err(err) => {
 
-            Message::error("error")
+            Message::error(&*err.to_string())
         }
     }
 }
 
-pub fn get_records(req: HttpRequest<AppState>, query_month_work_record: Json<QueryMonthWorkRecord>) -> MessageResult<String> {
+pub fn get_records(req: HttpRequest<AppState>, query_month_work_record: Query<QueryMonthWorkRecord>) -> MessageResult<Vec<WorkRecordResponse>> {
 
     let conn = &req.state().conn;
     
@@ -50,17 +50,17 @@ pub fn get_records(req: HttpRequest<AppState>, query_month_work_record: Json<Que
 
         Ok(data) => {
 
-            Message::success("success".to_owned())
+            Message::success(data)
         },
 
         Err(err) => {
 
-            Message::error("error")
+            Message::error(&*err.to_string())
         }
     }
 }
 
-pub fn get_record(req: HttpRequest<AppState>, query_work_record: Json<QueryWorkRecord>) -> MessageResult<String> {
+pub fn get_record(req: HttpRequest<AppState>, query_work_record: Query<QueryWorkRecord>) -> MessageResult<WorkRecordResponse> {
 
     let conn = &req.state().conn;
 
@@ -68,17 +68,17 @@ pub fn get_record(req: HttpRequest<AppState>, query_work_record: Json<QueryWorkR
 
         Ok(data) => {
 
-            Message::success("success".to_owned())
+            Message::success(data)
         },
 
         Err(err) => {
 
-            Message::error("error")
+            Message::error(&*err.to_string())
         }
     }
 }
 
-pub fn delete(req: HttpRequest<AppState>, delete_work_record: Json<DeleteWorkRecord>) -> MessageResult<String> {
+pub fn delete(req: HttpRequest<AppState>, delete_work_record: Query<DeleteWorkRecord>) -> MessageResult<usize> {
 
     let conn = &req.state().conn;
 
@@ -86,12 +86,12 @@ pub fn delete(req: HttpRequest<AppState>, delete_work_record: Json<DeleteWorkRec
 
         Ok(data) => {
 
-            Message::success("success".to_owned())
+            Message::success(data)
         },
 
         Err(err) => {
 
-            Message::error("error")
+            Message::error(&*err.to_string())
         }
     }
 }

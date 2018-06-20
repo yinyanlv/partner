@@ -22,7 +22,9 @@ mod controllers;
 mod models;
 
 use std::sync::Arc;
-use actix_web::{server, App, http::{self, header, Method}, middleware::{self, session::SessionStorage, cors::Cors}};
+use actix_web::{server, App, http, middleware};
+use actix_web::http::{header, Method};
+use actix_web::middleware::{session::SessionStorage, cors::Cors};
 use actix_redis::RedisSessionBackend;
 
 use controllers::user;
@@ -53,9 +55,8 @@ fn main() {
                 .configure(|app| {
                     Cors::for_app(app)
                     .allowed_origin("http://localhost:4200")
-                    .allowed_methods(vec!["GET", "POST", "PUT", "DELETE"])
-                    .allowed_headers(vec![http::header::ACCEPT])
-                    .allowed_header(header::CONTENT_TYPE)
+                    .allowed_methods(vec!["GET", "POST", "PUT", "DELETE", "OPTIONS"])
+                    .allowed_headers(vec![header::ACCEPT, header::CONTENT_TYPE])
                     .max_age(3600)
                     .resource("/register", |r| {
                         r.method(http::Method::POST).with2(user::register)

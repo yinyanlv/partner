@@ -47,7 +47,6 @@ impl CreateWorkRecord {
 pub struct UpdateWorkRecord {
     pub id: i32,
     pub username: String,
-    pub date: NaiveDate,
     pub overtime: f32,
     pub events: Vec<CreateWorkEvent>
 }
@@ -110,10 +109,15 @@ pub struct WorkRecord {
 
 impl WorkRecord {
 
-    pub fn create(&self, conn: &Conn, events: &Vec<CreateWorkEvent>) -> Result<i32, String> {
+    pub fn create(&self, conn: &Conn, events: &Vec<CreateWorkEvent>) -> QueryResult<usize> {
         use common::schema::work_record::dsl::*;
 
-        diesel::insert_into(work_record).values(self).execute(conn);
+        let res = diesel::insert_into(work_record).values(self).execute(conn);
+
+        if res.is_err() {
+
+            return res; 
+        }
 
         let last_insert_id = sql("SELECT LAST_INSERT_ID()").get_result(conn).unwrap();
         let mut new_events = vec![];
@@ -129,12 +133,13 @@ impl WorkRecord {
             WorkEvent::create(conn, &new_events);
         }
 
-        Ok(last_insert_id)
+        Ok(last_insert_id as usize)
     }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct WorkRecordEvents {
+#[serde(rename_all = "camelCase")]
+pub struct WorkRecordResponse {
     pub id: i32,
     pub username: String,
     pub date: NaiveDate,
@@ -147,25 +152,25 @@ pub struct WorkRecordEvents {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct QueryWorkRecord {
     pub username: String,
-    pub date: NaiveDate
+    pub date: DateTime<Utc>
 }
 
 impl QueryWorkRecord {
     
-    pub fn query(&self, conn: &Conn) -> QueryResult<WorkRecordEvents> {
+    pub fn query(&self, conn: &Conn) -> QueryResult<WorkRecordResponse> {
 
         use common::schema::work_record::dsl::*;
 
         let record = work_record
                         .filter(
                             username.eq(&self.username)
-                                    .and(date.eq(&self.date))
+                                    .and(date.eq(&self.date.naive_utc().date()))
                                 )
                         .get_result::<RawWorkRecord>(conn).unwrap();
         let cur_id = record.id;
         let events = QueryWorkEvents::query(conn, cur_id).unwrap();
 
-        Ok(WorkRecordEvents {
+        Ok(WorkRecordResponse {
                 id: record.id,
                 username: record.username,
                 date: record.date,
@@ -186,7 +191,7 @@ pub struct QueryMonthWorkRecord {
 
 impl QueryMonthWorkRecord {
 
-    pub fn query(&self, conn: &Conn) -> QueryResult<Vec<WorkRecordEvents>> {
+    pub fn query(&self, conn: &Conn) -> QueryResult<Vec<WorkRecordResponse>> {
 
         use common::schema::work_record::dsl::*;
 
@@ -208,7 +213,7 @@ impl QueryMonthWorkRecord {
             let cur_id = record.id;
             let events = QueryWorkEvents::query(conn, cur_id).unwrap();
 
-            list.push(WorkRecordEvents {
+            list.push(WorkRecordResponse {
                 id: record.id,
                 username: record.username,
                 date: record.date,
@@ -229,6 +234,7 @@ impl QueryMonthWorkRecord {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct DeleteWorkRecord {
     pub username: String,
     pub record_id: i32
@@ -239,9 +245,12 @@ impl DeleteWorkRecord {
     pub fn delete(&self, conn: &Conn) -> QueryResult<usize> {
         use common::schema::work_record::dsl::*;
 
-        let num = diesel::delete(work_record.filter(id.eq(&self.record_id))).execute(conn).unwrap();
-        DeleteWorkEvents.delete(conn, self.record_id);
+        let res = DeleteWorkEvents.delete(conn, self.record_id);
 
-        Ok(num)
+        if res.is_err() {
+            return res;
+        }
+
+        diesel::delete(work_record.filter(id.eq(&self.record_id))).execute(conn)
     }
 }
