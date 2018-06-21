@@ -2,10 +2,16 @@ use actix_web::{HttpRequest, Json, Query};
 use actix_web::middleware::session::RequestSession;
 
 use common::state::AppState;
+use common::util::is_unauthorized;
 use models::work_record::*;
 use models::response::{Message, MessageResult};
 
 pub fn create(req: HttpRequest<AppState>, create_work_record: Json<CreateWorkRecord>) -> MessageResult<usize> {
+
+    if is_unauthorized(&req) {
+        
+        return Message::error("Unauthorized");
+    }
 
     let conn = &req.state().conn;
     let work_record = create_work_record.into_work_record();
@@ -26,6 +32,11 @@ pub fn create(req: HttpRequest<AppState>, create_work_record: Json<CreateWorkRec
 
 pub fn update(req: HttpRequest<AppState>, update_work_record: Json<UpdateWorkRecord>) -> MessageResult<usize> {
 
+    if is_unauthorized(&req) {
+        
+        return Message::error("Unauthorized");
+    }
+
     let conn = &req.state().conn;
 
     match update_work_record.update(conn, &update_work_record.events) {
@@ -43,6 +54,11 @@ pub fn update(req: HttpRequest<AppState>, update_work_record: Json<UpdateWorkRec
 }
 
 pub fn get_records(req: HttpRequest<AppState>, query_month_work_record: Json<QueryMonthWorkRecord>) -> MessageResult<Vec<WorkRecordResponse>> {
+
+    if is_unauthorized(&req) {
+        
+        return Message::error("Unauthorized");
+    }
 
     let conn = &req.state().conn;
     
@@ -62,6 +78,11 @@ pub fn get_records(req: HttpRequest<AppState>, query_month_work_record: Json<Que
 
 pub fn get_record(req: HttpRequest<AppState>, query_work_record: Json<QueryWorkRecord>) -> MessageResult<WorkRecordResponse> {
 
+    if is_unauthorized(&req) {
+        
+        return Message::error("Unauthorized");
+    }
+
     let conn = &req.state().conn;
 
     match query_work_record.query(conn) {
@@ -80,6 +101,11 @@ pub fn get_record(req: HttpRequest<AppState>, query_work_record: Json<QueryWorkR
 
 pub fn delete(req: HttpRequest<AppState>, delete_work_record: Query<DeleteWorkRecord>) -> MessageResult<usize> {
 
+    if is_unauthorized(&req) {
+        
+        return Message::error("Unauthorized");
+    }
+    
     let conn = &req.state().conn;
 
     match delete_work_record.delete(conn) {

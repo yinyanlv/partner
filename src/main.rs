@@ -16,7 +16,6 @@ extern crate serde_json;
 extern crate chrono;
 extern crate rand;
 extern crate crypto;
-extern crate cookie;
 
 mod common;
 mod controllers;
@@ -57,13 +56,17 @@ fn main() {
                     Cors::for_app(app)
                     .allowed_origin("http://localhost:4200")
                     .allowed_methods(vec!["GET", "POST", "PUT", "DELETE", "OPTIONS"])
-                    .allowed_headers(vec![header::ACCEPT, header::CONTENT_TYPE])
+                    .allowed_headers(vec![header::ORIGIN, header::ACCEPT, header::CONTENT_TYPE])
+                    .supports_credentials()
                     .max_age(3600)
                     .resource("/register", |r| {
                         r.method(http::Method::POST).with2(user::register)
                     })
                     .resource("/login", |r| {
                         r.method(http::Method::POST).with2(user::login)
+                    })
+                    .resource("/logout", |r| {
+                        r.method(http::Method::GET).with(user::logout)
                     })
                     .resource("/user/update", |r| {
                         r.method(http::Method::PUT).with2(user::update)

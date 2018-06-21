@@ -2,6 +2,7 @@ use actix_web::{HttpRequest, Json};
 use actix_web::middleware::session::RequestSession;
 
 use common::state::AppState;
+use common::util::is_unauthorized;
 use models::user::*;
 use models::response::{Message, MessageResult};
 
@@ -45,18 +46,36 @@ pub fn login(req: HttpRequest<AppState>, login_user: Json<LoginUser>) -> Message
     match login_user.validate(conn) {
         Ok(data) => {
 
-            req.session().set("user", data.clone());
+            if login_user.remember {
+                req.session().set::<RawUser>("user", data.clone());
+            } else {
+                req.session().set::<RawUser>("user", data.clone());
+            }
+       
             Message::success(data)
         },
         Err(err) => Message::error("用户名或密码错误")
     }
 }
 
+pub fn logout(req: HttpRequest<AppState>) -> MessageResult<String> {
+
+    if is_unauthorized(&req) {
+        
+        return Message::error("Unauthorized");
+    }
+
+    req.session().clear();
+
+    Message::success("退出登录成功".to_owned())
+}
+
 pub fn update(req: HttpRequest<AppState>, update_user: Json<UpdateUser>) -> MessageResult<RawUser> {
 
-    let user = req.session().get::<RawUser>("user");
-
-    println!("current user: {:?}", user);
+    if is_unauthorized(&req) {
+        
+        return Message::error("Unauthorized");
+    }
 
     let conn = &req.state().conn;
 
@@ -78,6 +97,11 @@ pub fn update(req: HttpRequest<AppState>, update_user: Json<UpdateUser>) -> Mess
 
 pub fn delete(req: HttpRequest<AppState>, delete_user: Json<DeleteUser>) -> MessageResult<String> {
 
+    if is_unauthorized(&req) {
+        
+        return Message::error("Unauthorized");
+    }
+
     let conn = &req.state().conn;
     
     match delete_user.delete(conn) {
@@ -94,7 +118,12 @@ pub fn delete(req: HttpRequest<AppState>, delete_user: Json<DeleteUser>) -> Mess
 }
 
 pub fn modify_password(req: HttpRequest<AppState>, modify_password_user: Json<ModifyPasswordUser>) -> MessageResult<String> {
-    
+
+    if is_unauthorized(&req) {
+        
+        return Message::error("Unauthorized");
+    }
+
     let conn = &req.state().conn;
 
     if modify_password_user.new_password != modify_password_user.confirm_new_password {
