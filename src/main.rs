@@ -16,6 +16,7 @@ extern crate serde_json;
 extern crate chrono;
 extern crate rand;
 extern crate crypto;
+extern crate cookie;
 
 mod common;
 mod controllers;
