@@ -26,6 +26,7 @@ use actix_web::{server, App, http, middleware};
 use actix_web::http::{header, Method};
 use actix_web::middleware::{session::SessionStorage, cors::Cors};
 use actix_redis::RedisSessionBackend;
+use chrono::Duration;
 
 use controllers::user;
 use controllers::work_record;
@@ -50,6 +51,7 @@ fn main() {
                 .middleware(middleware::Logger::default())
                 .middleware(SessionStorage::new(
                     RedisSessionBackend::new("127.0.0.1:6379", &[0;32])
+                                    .cookie_max_age(Duration::days(90))
                 ))
                 .prefix("/api")
                 .configure(|app| {
