@@ -1,1 +1,17 @@
-port=8888
+[app]
+name = "partner"
+host = "127.0.0.1"
+port = 8888
+home_url = "http://localhost:8888"
+allowed_origin = "http://localhost:4200"
+cache_max_age = "60 * 60 * 24 * 7"  # 7天
+
+[mysql]
+url = "mysql://root:111111@localhost/partner"
+
+[redis]
+url = "127.0.0.1:6379"
+ttl = "60 * 60 * 24 * 90"  # 90天
+
+[cookie]
+max_age = "60 * 60 * 24 * 90"  # 90天

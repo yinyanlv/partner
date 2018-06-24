@@ -16,6 +16,8 @@ extern crate serde_json;
 extern crate chrono;
 extern crate rand;
 extern crate crypto;
+extern crate toml;
+extern crate meval;
 
 mod common;
 mod controllers;
@@ -32,35 +34,37 @@ use controllers::user;
 use controllers::work_record;
 use controllers::error;
 use common::state::AppState;
+use common::lazy_static::CONFIG;
 
 fn main() {
 
-    let config = dotenv::var("CONFIG").expect("CONFIG must be set in .env file");
+    let app_env = dotenv::var("APP_ENV").expect("APP_ENV must be set in .env file");
 
-    if config == "dev" {
+    if app_env == "dev" {
         std::env::set_var("RUST_LOG", "actix_web=info,actix_redis=info");
         std::env::set_var("RUST_BACKTRACE", "1");
 
         env_logger::init();
     }
 
-    let actix_sys = actix::System::new("partner");
+    let actix_sys = actix::System::new(&*CONFIG.app.name);
 
     server::new(|| {
             App::with_state(AppState::new())
                 .middleware(middleware::Logger::default())
                 .middleware(SessionStorage::new(
-                    RedisSessionBackend::new("127.0.0.1:6379", &[0;32])
-                                    .cookie_max_age(Duration::days(90))
+                    RedisSessionBackend::new(&*CONFIG.redis.url, &[0;32])
+                                    .ttl(CONFIG.redis.ttl as u16)
+                                    .cookie_max_age(Duration::seconds(CONFIG.cookie.max_age as i64))
                 ))
                 .prefix("/api")
                 .configure(|app| {
                     Cors::for_app(app)
-                    .allowed_origin("http://localhost:4200")
+                    .allowed_origin(&CONFIG.app.allowed_origin)
                     .allowed_methods(vec!["GET", "POST", "PUT", "DELETE", "OPTIONS"])
                     .allowed_headers(vec![header::ORIGIN, header::ACCEPT, header::CONTENT_TYPE])
                     .supports_credentials()
-                    .max_age(3600)
+                    .max_age(CONFIG.app.cache_max_age as usize)
                     .resource("/register", |r| {
                         r.method(http::Method::POST).with2(user::register)
                     })
@@ -100,11 +104,11 @@ fn main() {
                         r.f(error::not_found)
                 })
         })
-        .bind("127.0.0.1:8888")
-        .expect("can't bind to port 8888")
+        .bind(&format!("{}:{}", CONFIG.app.host, CONFIG.app.port))
+        .expect(&format!("can't bind to port {}", CONFIG.app.port))
         .start();
 
-    println!("server is listening on port 8888 !");
+    println!("{}", format!("server is listening on port {} !", CONFIG.app.port));
 
     actix_sys.run();
 }
