@@ -37,6 +37,7 @@ pub struct Redis {
 
 #[derive(Debug, Deserialize)]
 pub struct Cookie {
+    pub key: String,
     #[serde(deserialize_with = "meval::de::as_f64")]
     pub max_age: f64
 }

@@ -5,6 +5,7 @@ extern crate actix_web;
 extern crate actix_redis;
 #[macro_use]
 extern crate redis_async;
+extern crate cookie;
 #[macro_use]
 extern crate diesel;
 extern crate dotenv;
@@ -37,6 +38,7 @@ use controllers::work_record;
 use controllers::error;
 use common::state::AppState;
 use common::lazy_static::CONFIG;
+use common::middlewares::Remember;
 
 fn main() {
 
@@ -59,6 +61,7 @@ fn main() {
                                     .ttl(CONFIG.redis.ttl as u16)
                                     .cookie_max_age(Duration::seconds(CONFIG.cookie.max_age as i64))
                 ))
+                .middleware(Remember)
                 .prefix("/api")
                 .configure(|app| {
                     Cors::for_app(app)

@@ -2,7 +2,7 @@ use actix_web::{HttpRequest, Json, Query};
 use actix_web::middleware::session::RequestSession;
 
 use common::state::AppState;
-use common::util::is_unauthorized;
+use common::util::{is_unauthorized, get_redis_key};
 use models::work_record::*;
 use models::response::{Message, MessageResult};
 

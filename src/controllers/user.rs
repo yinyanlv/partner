@@ -46,18 +46,17 @@ pub fn login(req: HttpRequest<AppState>, login_user: Json<LoginUser>) -> Message
     let conn = &req.state().conn;
 
     match login_user.validate(conn) {
+
         Ok(data) => {
 
-            if login_user.remember {
-                req.session().set::<RawUser>("user", data.clone());
-            } else {
-                req.session().set::<RawUser>("user", data.clone());
-            }
-            let key = req.session().get::<String>("_redis_key").unwrap().unwrap();
-       
-            let cmd = Command(resp_array!["EXPIRE", &*key, "72000"]);
+            req.session().set::<RawUser>("user", data.clone());
 
-            RedisActor::start(&*CONFIG.redis.url).send(cmd);
+            if login_user.remember {
+                req.session().set::<bool>("remember", true);
+            } else {
+                req.session().set::<bool>("remember", false);
+            }
+
             Message::success(data)
         },
         Err(err) => Message::error("用户名或密码错误")

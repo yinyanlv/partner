@@ -6,8 +6,9 @@ authors = ["yinyanlv <yanlv.yin@gmail.com>"]
 [dependencies]
 actix = "^0.5.7"
 actix-web = "^0.6.10"
-actix-redis = {path = "../actix-redis", features = ["web"]}
+actix-redis = {git = "https://github.com/actix/actix-redis", features = ["web"]}
 redis-async = "0.0"
+cookie = "^0.10.1"
 serde = "^1.0.66"
 serde_derive = "^1.0.66"
 serde_json = "^1.0.19"
