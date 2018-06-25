@@ -1,8 +1,10 @@
 use actix_web::{HttpRequest, Json};
 use actix_web::middleware::session::RequestSession;
+use actix_redis::{Command, RedisActor};
 
 use common::state::AppState;
 use common::util::is_unauthorized;
+use common::lazy_static::CONFIG;
 use models::user::*;
 use models::response::{Message, MessageResult};
 
@@ -51,7 +53,11 @@ pub fn login(req: HttpRequest<AppState>, login_user: Json<LoginUser>) -> Message
             } else {
                 req.session().set::<RawUser>("user", data.clone());
             }
+            let key = req.session().get::<String>("_redis_key").unwrap().unwrap();
        
+            let cmd = Command(resp_array!["EXPIRE", &*key, "72000"]);
+
+            RedisActor::start(&*CONFIG.redis.url).send(cmd);
             Message::success(data)
         },
         Err(err) => Message::error("用户名或密码错误")

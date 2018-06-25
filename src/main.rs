@@ -4,6 +4,8 @@ extern crate actix;
 extern crate actix_web;
 extern crate actix_redis;
 #[macro_use]
+extern crate redis_async;
+#[macro_use]
 extern crate diesel;
 extern crate dotenv;
 extern crate env_logger;
