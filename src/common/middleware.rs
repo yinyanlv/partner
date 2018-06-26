@@ -1,10 +1,13 @@
-use actix_web::http::{header, HttpTryFrom};
-use actix_web::{App, HttpRequest, HttpResponse, Result};
+use actix::prelude::Arbiter;
+use actix_web::{HttpRequest, HttpResponse, Result, Error};
+use actix_web::http::header;
 use actix_web::http::header::HeaderValue;
 use actix_web::middleware::{Middleware, Started, Response};
 use actix_web::middleware::session::RequestSession;
-use cookie::{Cookie, CookieJar, Key};
+use actix_redis::Command;
+use cookie::{CookieJar, Key};
 use chrono::Duration;
+use futures::Future;
 
 use common::state::AppState;
 use common::lazy_static::CONFIG;
@@ -35,7 +38,19 @@ impl Middleware<AppState> for Remember {
                             let redis_key = get_redis_key(_req).unwrap();
 
                             update_max_age(_req, &mut res);
-                        }
+
+                            let addr = _req.state().redis_addr.clone();
+
+                            Arbiter::handle().spawn_fn(move || {
+
+                                addr.send(Command(resp_array!["EXPIRE", &*redis_key, &*CONFIG.redis.ttl.to_string()]))
+                                    .map_err(Error::from)
+                                    .then(move |res| {
+                                        Ok(())
+                                    })
+                            });
+                        };
+                                    
                     }
                 },
             Err(_) => ()
@@ -45,7 +60,7 @@ impl Middleware<AppState> for Remember {
     }
 }
 
-pub fn get_redis_key(req: &HttpRequest<AppState>) -> Option<String> {
+fn get_redis_key(req: &HttpRequest<AppState>) -> Option<String> {
 
     let cookies = req.cookies().unwrap();
 
@@ -66,7 +81,7 @@ pub fn get_redis_key(req: &HttpRequest<AppState>) -> Option<String> {
     None
 }
 
-pub fn update_max_age(req: &HttpRequest<AppState>, res: &mut HttpResponse) {
+fn update_max_age(req: &HttpRequest<AppState>, res: &mut HttpResponse) {
 
     let cookies = req.cookies().unwrap();
     let mut temp = None;

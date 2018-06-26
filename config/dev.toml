@@ -11,8 +11,8 @@ url = "mysql://root:111111@localhost/partner"
 
 [redis]
 url = "127.0.0.1:6379"
-ttl = "60 * 60 * 24 * 90"  # 90天
+ttl = "60 * 60 * 24 * 30"  # 30天
 
 [cookie]
 key = "actix-session"
-max_age = "60 * 60 * 24 * 90"  # 90天
+max_age = "60 * 60 * 24 * 30"  # 30天

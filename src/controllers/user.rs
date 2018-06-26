@@ -1,6 +1,5 @@
 use actix_web::{HttpRequest, Json};
 use actix_web::middleware::session::RequestSession;
-use actix_redis::{Command, RedisActor};
 
 use common::state::AppState;
 use common::util::is_unauthorized;

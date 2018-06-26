@@ -5,6 +5,7 @@ extern crate actix_web;
 extern crate actix_redis;
 #[macro_use]
 extern crate redis_async;
+extern crate futures;
 extern crate cookie;
 #[macro_use]
 extern crate diesel;
@@ -54,7 +55,7 @@ fn main() {
     let actix_sys = actix::System::new(&*CONFIG.app.name);
 
     server::new(|| {
-            App::with_state(AppState::new())
+            App::with_state(AppState::new(&*CONFIG.redis.url))
                 .middleware(middleware::Logger::default())
                 .middleware(Remember)
                 .middleware(SessionStorage::new(
