@@ -28,7 +28,7 @@ mod controllers;
 mod models;
 
 use std::sync::Arc;
-use actix_web::{server, App, http, middleware};
+use actix_web::{server, App, http, middleware, HttpResponse};
 use actix_web::http::{header, Method};
 use actix_web::middleware::{session::SessionStorage, cors::Cors};
 use actix_redis::RedisSessionBackend;
@@ -55,7 +55,8 @@ fn main() {
     let actix_sys = actix::System::new(&*CONFIG.app.name);
 
     server::new(|| {
-            App::with_state(AppState::new(&*CONFIG.redis.url))
+            vec![
+                App::with_state(AppState::new(&*CONFIG.redis.url))
                 .middleware(middleware::Logger::default())
                 .middleware(Remember)
                 .middleware(SessionStorage::new(
@@ -109,6 +110,13 @@ fn main() {
                 .default_resource(|r| {
                         r.f(error::not_found)
                 })
+                .boxed(),
+
+                App::new().resource("{tail:.*}", |r| {
+                    r.f(error::global_not_found)
+                })
+                .boxed()
+            ]
         })
         .bind(&format!("{}:{}", CONFIG.app.host, CONFIG.app.port))
         .expect(&format!("can't bind to port {}", CONFIG.app.port))
