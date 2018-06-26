@@ -17,14 +17,14 @@ pub struct Remember;
 impl Middleware<AppState> for Remember {
 
     fn start(&self, req: &mut HttpRequest<AppState>) -> Result<Started> {
-        
+
         Ok(Started::Done)
     }
 
     fn response(&self, req: &mut HttpRequest<AppState>, mut res: HttpResponse) -> Result<Response> {
 
         let _req = &*req;
-
+        
         match _req.session().get::<bool>("remember") {
 
             Ok(data) => {

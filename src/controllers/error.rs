@@ -1,14 +1,22 @@
 use actix_web::{HttpRequest};
 
 use common::state::AppState;
+use common::filter::Unauthorized;
 use models::response::{Message, MessageResult};
 
-pub fn not_found(_req: HttpRequest<AppState>) -> MessageResult<String> {
+pub fn handle_error(req: HttpRequest<AppState>) -> MessageResult<String> {
 
-    Message::error("not found")
+    match req.extensions().get::<Unauthorized>() {
+        Some(_) => {
+            Message::error("用户未登录")
+        },
+        None => {
+            Message::error("资源不存在")
+        }
+    }
 }
 
-pub fn global_not_found(_req: HttpRequest) -> MessageResult<String> {
+pub fn not_found(_req: HttpRequest) -> MessageResult<String> {
 
-    Message::error("not found")
+    Message::error("资源不存在")
 }

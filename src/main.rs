@@ -28,7 +28,7 @@ mod controllers;
 mod models;
 
 use std::sync::Arc;
-use actix_web::{server, App, http, middleware, HttpResponse};
+use actix_web::{server, App, http, middleware, HttpResponse, pred};
 use actix_web::http::{header, Method};
 use actix_web::middleware::{session::SessionStorage, cors::Cors};
 use actix_redis::RedisSessionBackend;
@@ -40,6 +40,7 @@ use controllers::error;
 use common::state::AppState;
 use common::lazy_static::CONFIG;
 use common::middleware::Remember;
+use common::filter::CheckLogin;
 
 fn main() {
 
@@ -79,41 +80,68 @@ fn main() {
                         r.method(http::Method::POST).with2(user::login)
                     })
                     .resource("/logout", |r| {
-                        r.method(http::Method::GET).with(user::logout)
+                        r.route()
+                        .filter(CheckLogin)
+                        .filter(pred::Get())
+                        .with(user::logout)
                     })
                     .resource("/user/update", |r| {
-                        r.method(http::Method::PUT).with2(user::update)
+                        r.route()
+                        .filter(CheckLogin)
+                        .filter(pred::Put())
+                        .with2(user::update)
                     })
                     .resource("/user/delete", |r| {
-                        r.method(http::Method::DELETE).with2(user::delete)
+                        r.route()
+                        .filter(CheckLogin)
+                        .filter(pred::Delete())
+                        .with2(user::delete)
                     })
                     .resource("/modify-password", |r| {
-                        r.method(http::Method::PUT).with2(user::modify_password)
+                        r.route()
+                        .filter(CheckLogin)
+                        .filter(pred::Put())
+                        .with2(user::modify_password)
                     })
                     .resource("/work-record/create", |r| {
-                        r.method(http::Method::POST).with2(work_record::create)
+                        r.route()
+                        .filter(CheckLogin)
+                        .filter(pred::Post())
+                        .with2(work_record::create)
                     })
                     .resource("/work-record/update", |r| {
-                        r.method(http::Method::PUT).with2(work_record::update)
+                        r.route()
+                        .filter(CheckLogin)
+                        .filter(pred::Put())
+                        .with2(work_record::update)
                     })
                     .resource("/work-record/get-records", |r| {
-                        r.method(http::Method::POST).with2(work_record::get_records)
+                        r.route()
+                        .filter(CheckLogin)
+                        .filter(pred::Post())
+                        .with2(work_record::get_records)
                     })
                     .resource("/work-record/get-record", |r| {
-                        r.method(http::Method::POST).with2(work_record::get_record)
+                        r.route()
+                        .filter(CheckLogin)
+                        .filter(pred::Post())
+                        .with2(work_record::get_record)
                     })
                     .resource("/work-record/delete", |r| {
-                        r.method(http::Method::DELETE).with2(work_record::delete)
+                        r.route()
+                        .filter(CheckLogin)
+                        .filter(pred::Delete())
+                        .with2(work_record::delete)
                     })
                     .register()
                 })
                 .default_resource(|r| {
-                        r.f(error::not_found)
-                })
+                    r.f(error::handle_error)
+                })          
                 .boxed(),
 
                 App::new().resource("{tail:.*}", |r| {
-                    r.f(error::global_not_found)
+                    r.f(error::not_found)
                 })
                 .boxed()
             ]
