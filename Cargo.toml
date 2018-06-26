@@ -5,7 +5,7 @@ authors = ["yinyanlv <yanlv.yin@gmail.com>"]
 
 [dependencies]
 actix = "^0.5.7"
-actix-web = "^0.6.10"
+actix-web = "^0.6.14"
 actix-redis = {git = "https://github.com/actix/actix-redis", features = ["web"]}
 redis-async = "0.0"
 cookie = "^0.10.1"

@@ -38,7 +38,7 @@ use controllers::work_record;
 use controllers::error;
 use common::state::AppState;
 use common::lazy_static::CONFIG;
-use common::middlewares::Remember;
+use common::middleware::Remember;
 
 fn main() {
 
@@ -56,12 +56,12 @@ fn main() {
     server::new(|| {
             App::with_state(AppState::new())
                 .middleware(middleware::Logger::default())
+                .middleware(Remember)
                 .middleware(SessionStorage::new(
                     RedisSessionBackend::new(&*CONFIG.redis.url, &[0;32])
                                     .ttl(CONFIG.redis.ttl as u16)
                                     .cookie_max_age(Duration::seconds(CONFIG.cookie.max_age as i64))
                 ))
-                .middleware(Remember)
                 .prefix("/api")
                 .configure(|app| {
                     Cors::for_app(app)
