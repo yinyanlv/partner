@@ -83,61 +83,76 @@ fn main() {
                         r.route()
                         .filter(CheckLogin)
                         .filter(pred::Get())
-                        .with(user::logout)
+                        .with(user::logout);
+
+                        r.f(error::handle_error);
                     })
                     .resource("/user/update", |r| {
                         r.route()
                         .filter(CheckLogin)
                         .filter(pred::Put())
-                        .with2(user::update)
+                        .with2(user::update);
+
+                        r.f(error::handle_error);
                     })
                     .resource("/user/delete", |r| {
                         r.route()
                         .filter(CheckLogin)
                         .filter(pred::Delete())
-                        .with2(user::delete)
+                        .with2(user::delete);
+
+                        r.f(error::handle_error);
                     })
                     .resource("/modify-password", |r| {
                         r.route()
                         .filter(CheckLogin)
                         .filter(pred::Put())
-                        .with2(user::modify_password)
+                        .with2(user::modify_password);
+
+                        r.f(error::handle_error);
                     })
                     .resource("/work-record/create", |r| {
                         r.route()
                         .filter(CheckLogin)
                         .filter(pred::Post())
-                        .with2(work_record::create)
+                        .with2(work_record::create);
+
+                        r.f(error::handle_error);
                     })
                     .resource("/work-record/update", |r| {
                         r.route()
                         .filter(CheckLogin)
                         .filter(pred::Put())
-                        .with2(work_record::update)
+                        .with2(work_record::update);
+
+                        r.f(error::handle_error);
                     })
                     .resource("/work-record/get-records", |r| {
                         r.route()
                         .filter(CheckLogin)
                         .filter(pred::Post())
-                        .with2(work_record::get_records)
+                        .with2(work_record::get_records);
+
+                        r.f(error::handle_error);
                     })
                     .resource("/work-record/get-record", |r| {
                         r.route()
                         .filter(CheckLogin)
                         .filter(pred::Post())
-                        .with2(work_record::get_record)
+                        .with2(work_record::get_record);
+
+                        r.f(error::handle_error);
                     })
                     .resource("/work-record/delete", |r| {
                         r.route()
                         .filter(CheckLogin)
                         .filter(pred::Delete())
-                        .with2(work_record::delete)
+                        .with2(work_record::delete);
+
+                        r.f(error::handle_error);
                     })
                     .register()
                 })
-                .default_resource(|r| {
-                    r.f(error::handle_error)
-                })          
                 .boxed(),
 
                 App::new().resource("{tail:.*}", |r| {
