@@ -1,0 +1,18 @@
+[app]
+name = "partner"
+host = "127.0.0.1"
+port = 8888
+home_url = "http://118.31.54.173"
+allowed_origin = "http://118.31.54.173"
+cache_max_age = "60 * 60 * 24 * 7"  # 7天
+
+[mysql]
+url = "mysql://root:bugong111111@127.0.0.1/partner"
+
+[redis]
+url = "127.0.0.1:6379"
+ttl = "60 * 60 * 24 * 30"  # 30天
+
+[cookie]
+key = "actix-session"
+max_age = "60 * 60 * 24 * 30"  # 30天
