@@ -35,20 +35,23 @@ impl Middleware<AppState> for Remember {
 
                         if remember {
 
-                            let redis_key = get_redis_key(_req).unwrap();
+                            let redis_key = get_redis_key(_req);
 
                             update_max_age(_req, &mut res);
 
-                            let addr = _req.state().redis_addr.clone();
+                            if redis_key.is_some() {
+                                let addr = _req.state().redis_addr.clone();
 
-                            Arbiter::handle().spawn_fn(move || {
+                                Arbiter::handle().spawn_fn(move || {
 
-                                addr.send(Command(resp_array!["EXPIRE", &*redis_key, &*CONFIG.redis.ttl.to_string()]))
-                                    .map_err(Error::from)
-                                    .then(move |res| {
-                                        Ok(())
-                                    })
-                            });
+                                    addr.send(Command(resp_array!["EXPIRE", &*redis_key.unwrap(), &*CONFIG.redis.ttl.to_string()]))
+                                        .map_err(Error::from)
+                                        .then(move |res| {
+                                            Ok(())
+                                        })
+                                });
+                            }
+                            
                         };
                                     
                     }
