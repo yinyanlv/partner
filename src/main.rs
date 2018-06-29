@@ -46,12 +46,12 @@ fn main() {
 
     let app_env = dotenv::var("APP_ENV").expect("APP_ENV must be set in .env file");
 
-    if app_env == "dev" {
+    // if app_env == "dev" {
         std::env::set_var("RUST_LOG", "actix_web=info,actix_redis=info");
         std::env::set_var("RUST_BACKTRACE", "1");
 
         env_logger::init();
-    }
+    // }
 
     let actix_sys = actix::System::new(&*CONFIG.app.name);
 
