@@ -10,7 +10,6 @@ extern crate cookie;
 #[macro_use]
 extern crate diesel;
 extern crate dotenv;
-extern crate env_logger;
 #[macro_use]
 extern crate lazy_static;
 extern crate serde;
@@ -22,6 +21,8 @@ extern crate rand;
 extern crate crypto;
 extern crate toml;
 extern crate meval;
+extern crate env_logger;
+extern crate log4rs;
 
 mod common;
 mod controllers;
@@ -46,12 +47,16 @@ fn main() {
 
     let app_env = dotenv::var("APP_ENV").expect("APP_ENV must be set in .env file");
 
-    // if app_env == "dev" {
+    if app_env == "dev" {
+        
         std::env::set_var("RUST_LOG", "actix_web=info,actix_redis=info");
         std::env::set_var("RUST_BACKTRACE", "1");
 
         env_logger::init();
-    // }
+    } else {
+
+        log4rs::init_file("log4rs.yaml", Default::default()).unwrap();
+    }
 
     let actix_sys = actix::System::new(&*CONFIG.app.name);
 
