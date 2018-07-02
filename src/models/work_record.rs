@@ -199,7 +199,7 @@ impl QueryMonthWorkRecord {
         let records = work_record
                         .filter(username.eq(&self.username))
                         .filter(date.ge(&self.start_date.naive_utc()))
-                        .filter(date.le(&self.end_date.naive_utc()))
+                        .filter(date.lt(&self.end_date.naive_utc()))
                         .load::<RawWorkRecord>(conn).unwrap();
 
         for record in records {
