@@ -8,3 +8,4 @@ Cargo.lock
 /log/
 
 /cmake-build-debug/
+/CMakeLists.txt
