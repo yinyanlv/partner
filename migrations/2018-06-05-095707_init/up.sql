@@ -21,7 +21,6 @@ CREATE TABLE `work_record` (
     `create_time` datetime NOT NULL,
     `update_time` datetime NOT NULL,
     KEY `username` (`username`),
-    UNIQUE KEY `date` (`date`),
     CONSTRAINT `work_record_ibfk_1` FOREIGN KEY (`username`) REFERENCES `user` (`username`)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8;
 
