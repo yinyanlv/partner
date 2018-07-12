@@ -57,16 +57,6 @@ impl UpdateWorkRecord {
 
         use common::schema::work_record::dsl::*;
 
-        if events.len() == 0 && self.overtime == 0.0 {
-
-            let delete_record = DeleteWorkRecord {
-                username: self.username.clone(),
-                record_id: self.id
-            };
-            
-            return delete_record.delete(conn);
-        }
-
         let num = diesel::update(work_record.filter(id.eq(self.id)))
                             .set((
                                 overtime.eq(self.overtime),
