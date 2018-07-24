@@ -81,17 +81,17 @@ fn main() {
                     .resource("/register", |r| {
                         r.method(http::Method::POST).with(user::register)
                     })
-//                    .resource("/login", |r| {
-//                        r.method(http::Method::POST).with(user::login)
-//                    })
-//                    .resource("/logout", |r| {
-//                        r.route()
-//                        .filter(CheckLogin)
-//                        .filter(pred::Get())
-//                        .with(user::logout);
-//
-//                        r.f(error::handle_error);
-//                    })
+                    .resource("/login", |r| {
+                        r.method(http::Method::POST).with(user::login)
+                    })
+                    .resource("/logout", |r| {
+                        r.route()
+                        .filter(CheckLogin)
+                        .filter(pred::Get())
+                        .f(user::logout);
+
+                        r.f(error::handle_error);
+                    })
                     .resource("/user/update", |r| {
                         r.route()
                         .filter(CheckLogin)

@@ -39,35 +39,34 @@ pub fn register((state, register_user): (State<AppState>, Json<RegisterUser>)) -
     }
 }
 
-//pub fn login(req: &HttpRequest<AppState>) -> MessageResult<RawUser> {
-//
-//    let conn = &state.conn;
-//    let login_user = Json::<LoginUser>::extract(req);
-//
-//    match login_user.validate(conn) {
-//
-//        Ok(data) => {
-//
-//            req.session().set::<RawUser>("user", data.clone());
-//
-//            if login_user.remember {
-//                req.session().set::<bool>("remember", true);
-//            } else {
-//                req.session().set::<bool>("remember", false);
-//            }
-//
-//            Message::success(data)
-//        },
-//        Err(err) => Message::error("用户名或密码错误")
-//    }
-//}
+pub fn login((req, login_user): (HttpRequest<AppState>, Json<LoginUser>)) -> MessageResult<RawUser> {
 
-//pub fn logout(req: &HttpRequest<AppState>) -> MessageResult<String> {
-//
-//    req.session().clear();
-//
-//    Message::success("退出登录成功".to_owned())
-//}
+    let conn = &req.state().conn;
+
+    match login_user.validate(conn) {
+
+        Ok(data) => {
+
+            req.session().set::<RawUser>("user", data.clone());
+
+            if login_user.remember {
+                req.session().set::<bool>("remember", true);
+            } else {
+                req.session().set::<bool>("remember", false);
+            }
+
+            Message::success(data)
+        },
+        Err(err) => Message::error("用户名或密码错误")
+    }
+}
+
+pub fn logout(req: &HttpRequest<AppState>) -> MessageResult<String> {
+
+    req.session().clear();
+
+    Message::success("退出登录成功".to_owned())
+}
 
 pub fn update((state, update_user): (State<AppState>, Json<UpdateUser>)) -> MessageResult<RawUser> {
 

@@ -1,4 +1,4 @@
-use actix_web::{HttpRequest, Json, State, FromRequest};
+use actix_web::{HttpRequest, State, Json, Query, FromRequest};
 
 use common::state::AppState;
 use models::work_record::*;
@@ -77,7 +77,7 @@ pub fn get_record((state, query_work_record): (State<AppState>, Json<QueryWorkRe
     }
 }
 
-pub fn delete((state, delete_work_record): (State<AppState>, Json<DeleteWorkRecord>)) -> MessageResult<usize> {
+pub fn delete((state, delete_work_record): (State<AppState>, Query<DeleteWorkRecord>)) -> MessageResult<usize> {
     
     let conn = &state.conn;
 
