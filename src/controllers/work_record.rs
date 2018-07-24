@@ -1,13 +1,12 @@
-use actix_web::{HttpRequest, Json, Query};
-use actix_web::middleware::session::RequestSession;
+use actix_web::{HttpRequest, Json, State, FromRequest};
 
 use common::state::AppState;
 use models::work_record::*;
 use models::response::{Message, MessageResult};
 
-pub fn create(req: HttpRequest<AppState>, create_work_record: Json<CreateWorkRecord>) -> MessageResult<usize> {
+pub fn create((state, create_work_record): (State<AppState>, Json<CreateWorkRecord>)) -> MessageResult<usize> {
 
-    let conn = &req.state().conn;
+    let conn = &state.conn;
     let work_record = create_work_record.into_work_record();
 
     match work_record.create(conn, &create_work_record.events) {
@@ -24,9 +23,9 @@ pub fn create(req: HttpRequest<AppState>, create_work_record: Json<CreateWorkRec
     }
 }
 
-pub fn update(req: HttpRequest<AppState>, update_work_record: Json<UpdateWorkRecord>) -> MessageResult<usize> {
+pub fn update((state, update_work_record): (State<AppState>, Json<UpdateWorkRecord>)) -> MessageResult<usize> {
 
-    let conn = &req.state().conn;
+    let conn = &state.conn;
 
     match update_work_record.update(conn, &update_work_record.events) {
 
@@ -42,10 +41,10 @@ pub fn update(req: HttpRequest<AppState>, update_work_record: Json<UpdateWorkRec
     }
 }
 
-pub fn get_records(req: HttpRequest<AppState>, query_month_work_record: Json<QueryMonthWorkRecord>) -> MessageResult<Vec<WorkRecordResponse>> {
+pub fn get_records((state, query_month_work_record): (State<AppState>, Json<QueryMonthWorkRecord>)) -> MessageResult<Vec<WorkRecordResponse>> {
 
-    let conn = &req.state().conn;
-    
+    let conn = &state.conn;
+
     match query_month_work_record.query(conn) {
 
         Ok(data) => {
@@ -60,9 +59,9 @@ pub fn get_records(req: HttpRequest<AppState>, query_month_work_record: Json<Que
     }
 }
 
-pub fn get_record(req: HttpRequest<AppState>, query_work_record: Json<QueryWorkRecord>) -> MessageResult<WorkRecordResponse> {
+pub fn get_record((state, query_work_record): (State<AppState>, Json<QueryWorkRecord>)) -> MessageResult<WorkRecordResponse> {
 
-    let conn = &req.state().conn;
+    let conn = &state.conn;
 
     match query_work_record.query(conn) {
 
@@ -78,9 +77,9 @@ pub fn get_record(req: HttpRequest<AppState>, query_work_record: Json<QueryWorkR
     }
 }
 
-pub fn delete(req: HttpRequest<AppState>, delete_work_record: Query<DeleteWorkRecord>) -> MessageResult<usize> {
+pub fn delete((state, delete_work_record): (State<AppState>, Json<DeleteWorkRecord>)) -> MessageResult<usize> {
     
-    let conn = &req.state().conn;
+    let conn = &state.conn;
 
     match delete_work_record.delete(conn) {
 

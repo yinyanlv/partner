@@ -4,7 +4,7 @@ use common::state::AppState;
 use common::filter::Unauthorized;
 use models::response::{Message, MessageResult};
 
-pub fn handle_error(req: HttpRequest<AppState>) -> MessageResult<String> {
+pub fn handle_error(req: &HttpRequest<AppState>) -> MessageResult<String> {
 
     match req.extensions().get::<Unauthorized>() {
         Some(_) => {
@@ -16,7 +16,7 @@ pub fn handle_error(req: HttpRequest<AppState>) -> MessageResult<String> {
     }
 }
 
-pub fn not_found(_req: HttpRequest) -> MessageResult<String> {
+pub fn not_found(_req: &HttpRequest) -> MessageResult<String> {
 
     Message::error("资源不存在")
 }

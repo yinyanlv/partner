@@ -4,7 +4,7 @@ use actix_web::http::header;
 use actix_web::http::header::HeaderValue;
 use actix_web::middleware::{Middleware, Started, Response};
 use actix_web::middleware::session::RequestSession;
-use actix_redis::Command;
+use actix_redis::{Command, RespValue};
 use cookie::{CookieJar, Key};
 use chrono::Duration;
 use futures::Future;
@@ -16,12 +16,12 @@ pub struct Remember;
 
 impl Middleware<AppState> for Remember {
 
-    fn start(&self, req: &mut HttpRequest<AppState>) -> Result<Started> {
+    fn start(&self, req: &HttpRequest<AppState>) -> Result<Started> {
 
         Ok(Started::Done)
     }
 
-    fn response(&self, req: &mut HttpRequest<AppState>, mut res: HttpResponse) -> Result<Response> {
+    fn response(&self, req: &HttpRequest<AppState>, mut res: HttpResponse) -> Result<Response> {
 
         let _req = &*req;
         
@@ -42,7 +42,7 @@ impl Middleware<AppState> for Remember {
                             if redis_key.is_some() {
                                 let addr = _req.state().redis_addr.clone();
 
-                                Arbiter::handle().spawn_fn(move || {
+                                Arbiter::spawn_fn(move || {
 
                                     addr.send(Command(resp_array!["EXPIRE", &*redis_key.unwrap(), &*CONFIG.redis.ttl.to_string()]))
                                         .map_err(Error::from)
@@ -67,7 +67,7 @@ fn get_redis_key(req: &HttpRequest<AppState>) -> Option<String> {
 
     let cookies = req.cookies().unwrap();
 
-    for cookie in cookies {
+    for cookie in cookies.iter() {
 
         if cookie.name() == &*CONFIG.cookie.key {
 
@@ -89,7 +89,7 @@ fn update_max_age(req: &HttpRequest<AppState>, res: &mut HttpResponse) {
     let cookies = req.cookies().unwrap();
     let mut temp = None;
 
-    for cookie in cookies {
+    for cookie in cookies.iter() {
 
         if cookie.name() == &*CONFIG.cookie.key {
 

@@ -79,24 +79,24 @@ fn main() {
                     .supports_credentials()
                     .max_age(CONFIG.app.cache_max_age as usize)
                     .resource("/register", |r| {
-                        r.method(http::Method::POST).with2(user::register)
+                        r.method(http::Method::POST).with(user::register)
                     })
-                    .resource("/login", |r| {
-                        r.method(http::Method::POST).with2(user::login)
-                    })
-                    .resource("/logout", |r| {
-                        r.route()
-                        .filter(CheckLogin)
-                        .filter(pred::Get())
-                        .with(user::logout);
-
-                        r.f(error::handle_error);
-                    })
+//                    .resource("/login", |r| {
+//                        r.method(http::Method::POST).with(user::login)
+//                    })
+//                    .resource("/logout", |r| {
+//                        r.route()
+//                        .filter(CheckLogin)
+//                        .filter(pred::Get())
+//                        .with(user::logout);
+//
+//                        r.f(error::handle_error);
+//                    })
                     .resource("/user/update", |r| {
                         r.route()
                         .filter(CheckLogin)
                         .filter(pred::Put())
-                        .with2(user::update);
+                        .with(user::update);
 
                         r.f(error::handle_error);
                     })
@@ -104,7 +104,7 @@ fn main() {
                         r.route()
                         .filter(CheckLogin)
                         .filter(pred::Delete())
-                        .with2(user::delete);
+                        .with(user::delete);
 
                         r.f(error::handle_error);
                     })
@@ -112,7 +112,7 @@ fn main() {
                         r.route()
                         .filter(CheckLogin)
                         .filter(pred::Put())
-                        .with2(user::modify_password);
+                        .with(user::modify_password);
 
                         r.f(error::handle_error);
                     })
@@ -120,7 +120,7 @@ fn main() {
                         r.route()
                         .filter(CheckLogin)
                         .filter(pred::Post())
-                        .with2(work_record::create);
+                        .with(work_record::create);
 
                         r.f(error::handle_error);
                     })
@@ -128,7 +128,7 @@ fn main() {
                         r.route()
                         .filter(CheckLogin)
                         .filter(pred::Put())
-                        .with2(work_record::update);
+                        .with(work_record::update);
 
                         r.f(error::handle_error);
                     })
@@ -136,7 +136,7 @@ fn main() {
                         r.route()
                         .filter(CheckLogin)
                         .filter(pred::Post())
-                        .with2(work_record::get_records);
+                        .with(work_record::get_records);
 
                         r.f(error::handle_error);
                     })
@@ -144,7 +144,7 @@ fn main() {
                         r.route()
                         .filter(CheckLogin)
                         .filter(pred::Post())
-                        .with2(work_record::get_record);
+                        .with(work_record::get_record);
 
                         r.f(error::handle_error);
                     })
@@ -152,7 +152,7 @@ fn main() {
                         r.route()
                         .filter(CheckLogin)
                         .filter(pred::Delete())
-                        .with2(work_record::delete);
+                        .with(work_record::delete);
 
                         r.f(error::handle_error);
                     })

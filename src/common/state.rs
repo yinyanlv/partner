@@ -9,7 +9,7 @@ use futures::Future;
 
 pub struct AppState {
     pub conn: PooledConnection<ConnectionManager<MysqlConnection>>,
-    pub redis_addr: Addr<Unsync, RedisActor>
+    pub redis_addr: Addr<RedisActor>
 }
 
 impl AppState {

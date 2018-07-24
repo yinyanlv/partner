@@ -1,4 +1,4 @@
-use actix_web::{HttpRequest, Json};
+use actix_web::{HttpRequest, Json, State, FromRequest};
 use actix_web::middleware::session::RequestSession;
 
 use common::state::AppState;
@@ -6,9 +6,9 @@ use common::lazy_static::CONFIG;
 use models::user::*;
 use models::response::{Message, MessageResult};
 
-pub fn register(req: HttpRequest<AppState>, register_user: Json<RegisterUser>) -> MessageResult<String> {
+pub fn register((state, register_user): (State<AppState>, Json<RegisterUser>)) -> MessageResult<String> {
 
-    let conn = &req.state().conn;
+    let conn = &state.conn;
 
     if register_user.password != register_user.confirm_password {
 
@@ -39,38 +39,39 @@ pub fn register(req: HttpRequest<AppState>, register_user: Json<RegisterUser>) -
     }
 }
 
-pub fn login(req: HttpRequest<AppState>, login_user: Json<LoginUser>) -> MessageResult<RawUser> {
+//pub fn login(req: &HttpRequest<AppState>) -> MessageResult<RawUser> {
+//
+//    let conn = &state.conn;
+//    let login_user = Json::<LoginUser>::extract(req);
+//
+//    match login_user.validate(conn) {
+//
+//        Ok(data) => {
+//
+//            req.session().set::<RawUser>("user", data.clone());
+//
+//            if login_user.remember {
+//                req.session().set::<bool>("remember", true);
+//            } else {
+//                req.session().set::<bool>("remember", false);
+//            }
+//
+//            Message::success(data)
+//        },
+//        Err(err) => Message::error("用户名或密码错误")
+//    }
+//}
 
-    let conn = &req.state().conn;
+//pub fn logout(req: &HttpRequest<AppState>) -> MessageResult<String> {
+//
+//    req.session().clear();
+//
+//    Message::success("退出登录成功".to_owned())
+//}
 
-    match login_user.validate(conn) {
+pub fn update((state, update_user): (State<AppState>, Json<UpdateUser>)) -> MessageResult<RawUser> {
 
-        Ok(data) => {
-
-            req.session().set::<RawUser>("user", data.clone());
-
-            if login_user.remember {
-                req.session().set::<bool>("remember", true);
-            } else {
-                req.session().set::<bool>("remember", false);
-            }
-
-            Message::success(data)
-        },
-        Err(err) => Message::error("用户名或密码错误")
-    }
-}
-
-pub fn logout(req: HttpRequest<AppState>) -> MessageResult<String> {
-
-    req.session().clear();
-
-    Message::success("退出登录成功".to_owned())
-}
-
-pub fn update(req: HttpRequest<AppState>, update_user: Json<UpdateUser>) -> MessageResult<RawUser> {
-
-    let conn = &req.state().conn;
+    let conn = &state.conn;
 
     if !update_user.is_email_updateable(conn) {
 
@@ -88,10 +89,10 @@ pub fn update(req: HttpRequest<AppState>, update_user: Json<UpdateUser>) -> Mess
     }
 }
 
-pub fn delete(req: HttpRequest<AppState>, delete_user: Json<DeleteUser>) -> MessageResult<String> {
+pub fn delete((state, delete_user): (State<AppState>, Json<DeleteUser>)) -> MessageResult<String> {
 
-    let conn = &req.state().conn;
-    
+    let conn = &state.conn;
+
     match delete_user.delete(conn) {
         Ok(data) => {
 
@@ -105,9 +106,9 @@ pub fn delete(req: HttpRequest<AppState>, delete_user: Json<DeleteUser>) -> Mess
     }
 }
 
-pub fn modify_password(req: HttpRequest<AppState>, modify_password_user: Json<ModifyPasswordUser>) -> MessageResult<String> {
+pub fn modify_password((state, modify_password_user): (State<AppState>, Json<ModifyPasswordUser>)) -> MessageResult<String> {
 
-    let conn = &req.state().conn;
+    let conn = &state.conn;
 
     if modify_password_user.new_password != modify_password_user.confirm_new_password {
 

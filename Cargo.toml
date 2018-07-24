@@ -4,10 +4,10 @@ version = "0.1.0"
 authors = ["yinyanlv <yanlv.yin@gmail.com>"]
 
 [dependencies]
-actix = "^0.5.7"
-actix-web = "^0.6.14"
-actix-redis = {git = "https://github.com/actix/actix-redis", features = ["web"]}
-redis-async = "0.0"
+actix = "^0.7.1"
+actix-web = "^0.7.1"
+actix-redis = "^0.5.0"
+redis-async = "0.3.2"
 futures = "0.1"
 cookie = "^0.10.1"
 serde = "^1.0.66"
