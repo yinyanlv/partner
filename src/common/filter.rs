@@ -22,14 +22,15 @@ impl Predicate<AppState> for CheckLogin {
 
         req.extensions_mut().insert(Unauthorized);
 
-        do_check(req, state).map(|res| {
-            println!("{:?}", res);
-            if res.is_some() {
-                return true;
-            } else {
-                return false;
+        let is_authed = do_check(req, state).then(|res| {
+            println!("{}", 11111);
+            match res {
+                Ok(val) => FutOk::<bool, bool>(true),
+                Err(_) => FutErr::<bool, bool>(false)
             }
-        }).wait().unwrap()
+        });
+
+        is_authed.wait().unwrap()
     }
 }
 
