@@ -6,7 +6,7 @@ use diesel::r2d2::{ConnectionManager, Pool, PooledConnection};
 use chrono::{Local, NaiveDateTime};
 
 use common::schema::user;
-use common::util::*;
+use common::utils::*;
 
 type Conn = PooledConnection<ConnectionManager<MysqlConnection>>;
 

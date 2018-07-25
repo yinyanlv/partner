@@ -40,8 +40,8 @@ use controllers::work_record;
 use controllers::error;
 use common::state::AppState;
 use common::lazy_static::CONFIG;
-use common::middleware::Remember;
-use common::filter::CheckLogin;
+use common::middlewares::{Remember, MarkLoginState};
+use common::filters::CheckLogin;
 
 fn main() {
 
@@ -70,6 +70,7 @@ fn main() {
                                     .ttl(CONFIG.redis.ttl as u16)
                                     .cookie_max_age(Duration::seconds(CONFIG.cookie.max_age as i64))
                 ))
+                .middleware(MarkLoginState)
                 .prefix("/api")
                 .configure(|app| {
                     Cors::for_app(app)

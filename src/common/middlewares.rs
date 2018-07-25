@@ -11,15 +11,11 @@ use futures::Future;
 
 use common::state::AppState;
 use common::lazy_static::CONFIG;
+use models::user::RawUser;
 
 pub struct Remember;  
 
 impl Middleware<AppState> for Remember {
-
-    fn start(&self, req: &HttpRequest<AppState>) -> Result<Started> {
-
-        Ok(Started::Done)
-    }
 
     fn response(&self, req: &HttpRequest<AppState>, mut res: HttpResponse) -> Result<Response> {
 
@@ -105,5 +101,22 @@ fn update_max_age(req: &HttpRequest<AppState>, res: &mut HttpResponse) {
 
     if temp.is_some() {
         res.headers_mut().append(header::SET_COOKIE, HeaderValue::from_str(&temp.unwrap().to_string()).unwrap());
+    }
+}
+
+pub struct IsLoggedIn;
+pub struct MarkLoginState;
+
+impl Middleware<AppState> for MarkLoginState {
+
+    fn start(&self, req: &HttpRequest<AppState>) -> Result<Started> {
+
+        let is_logged_in = req.session().get::<RawUser>("user").unwrap().is_some();
+
+        if is_logged_in {
+            req.extensions_mut().insert(IsLoggedIn);
+        }
+
+        Ok(Started::Done)
     }
 }

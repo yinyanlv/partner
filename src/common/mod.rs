@@ -1,7 +1,7 @@
 pub mod schema;
 pub mod state;
-pub mod util;
+pub mod utils;
 pub mod config;
 pub mod lazy_static;
-pub mod middleware;
-pub mod filter;
+pub mod middlewares;
+pub mod filters;

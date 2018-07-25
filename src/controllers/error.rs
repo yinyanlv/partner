@@ -1,7 +1,7 @@
 use actix_web::{HttpRequest};
 
 use common::state::AppState;
-use common::filter::Unauthorized;
+use common::filters::Unauthorized;
 use models::response::{Message, MessageResult};
 
 pub fn handle_error(req: &HttpRequest<AppState>) -> MessageResult<String> {
