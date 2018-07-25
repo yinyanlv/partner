@@ -1,10 +1,12 @@
+use std::str;
 use actix::Arbiter;
-use actix_web::{Error, Request};
+use actix_web::{Error, Request, error::CookieParseError};
 use actix_web::pred::Predicate;
 use actix_web::middleware::session::RequestSession;
 use actix_redis::{Command, RespValue};
 use cookie::{Cookie, CookieJar, Key};
 use futures::Future;
+use futures::future::{err as FutErr, ok as FutOk, Either};
 
 use common::lazy_static::CONFIG;
 use common::state::AppState;
@@ -20,24 +22,22 @@ impl Predicate<AppState> for CheckLogin {
 
         req.extensions_mut().insert(Unauthorized);
 
-        false
+        do_check(req, state).map(|res| {
+            println!("{:?}", res);
+            if res.is_some() {
+                return true;
+            } else {
+                return false;
+            }
+        }).wait().unwrap()
     }
 }
 
-fn do_check(req: &Request, state: &AppState) -> bool {
+fn do_check(req: &Request, state: &AppState) -> Box<Future<Item = Option<bool>, Error = Error> >{
 
-    let cookie = req.headers().get("cookie");
+    let cookies = get_cookies(&req).unwrap();
 
-    if cookie.is_none() {
-
-        return false;
-    }
-
-    let cookie_str = cookie.unwrap().to_str().unwrap();
-
-    let cookies = Cookie::parse(cookie_str);
-
-    for cookie in cookies {
+    for cookie in cookies.iter() {
 
         if cookie.name() == &*CONFIG.cookie.key {
 
@@ -47,27 +47,48 @@ fn do_check(req: &Request, state: &AppState) -> bool {
             if let Some(cookie) = jar.signed(&Key::from_master(&[0;32])).get(&*CONFIG.cookie.key) {
 
                 let addr = state.redis_addr.clone();
-                let result = Arbiter::spawn_fn(move || {
+
+                return Box::new(
                     addr
                         .send(Command(resp_array!["GET", cookie.value()]))
                         .map_err(Error::from)
-                        .then(move |res| {
+                        .and_then(move |res| {
                             match res {
                                 Ok(val) => {
                                     println!("{:?}", val);
-                                    true
+                                    return Ok(Some(true));
                                 },
                                 Err(err) => {
-                                    false
+                                    return Ok(None);
                                 }
                             }
-                        })
-                }).wait();
 
-                return true;
+                            Ok(None)
+                        })
+                );
+            } else {
+                return Box::new(FutOk(None));
             }
         }
     }
 
-    false
+    Box::new(FutOk(None))
+}
+
+fn get_cookies(req: &Request) -> Result<Vec<Cookie<'static>>, CookieParseError> {
+
+    let mut cookies = Vec::new();
+
+    for item in req.headers().get_all("cookie") {
+
+        let s = str::from_utf8(item.as_bytes()).map_err(CookieParseError::from)?;
+
+        for cookie_str in s.split(';').map(|s| s.trim()) {
+            if !cookie_str.is_empty() {
+                cookies.push(Cookie::parse_encoded(cookie_str)?.into_owned());
+            }
+        }
+    }
+
+    Ok(cookies)
 }
