@@ -1,11 +1,8 @@
-use std::sync::Arc;
 use actix::*;
-use actix::prelude::*;
-use actix_redis::{Command, RedisActor};
+use actix_redis::RedisActor;
 use diesel::prelude::MysqlConnection;
 use diesel::r2d2::{ConnectionManager, Pool, PooledConnection};
 use common::lazy_static::CONFIG;
-use futures::Future;
 
 pub struct AppState {
     pub conn: PooledConnection<ConnectionManager<MysqlConnection>>,

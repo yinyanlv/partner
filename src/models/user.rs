@@ -1,8 +1,7 @@
-use actix_web::error;
 use diesel;
 use diesel::prelude::*;
 use diesel::prelude::MysqlConnection;
-use diesel::r2d2::{ConnectionManager, Pool, PooledConnection};
+use diesel::r2d2::{ConnectionManager, PooledConnection};
 use chrono::{Local, NaiveDateTime};
 
 use common::schema::user;
@@ -50,8 +49,6 @@ pub struct LoginUser {
 impl LoginUser {
     pub fn validate(&self, conn: &Conn) -> Result<RawUser, bool> {
 
-        use common::schema::user::dsl::*;
-
         let cur_user = User::get_user(conn, &*self.username);
 
         match cur_user {
@@ -91,7 +88,7 @@ impl UpdateUser {
                 email.eq(self.email.clone()),
                 phone.eq(self.phone.clone())
             ))
-            .execute(conn);
+            .execute(conn).unwrap();
 
         User::get_user(conn, &*self.username)
     }
@@ -144,8 +141,6 @@ pub struct ModifyPasswordUser {
 impl ModifyPasswordUser {
 
     pub fn validate(&self, conn: &Conn) -> Result<RawUser, bool> {
-
-        use common::schema::user::dsl::*;
 
         let cur_user = User::get_user(conn, &*self.username);
 
@@ -230,8 +225,6 @@ impl User {
     }
 
     pub fn is_user_exist(conn: &Conn, cur_username: &str) -> bool {
-
-        use common::schema::user::dsl::*;
 
         User::get_user(conn, cur_username).is_ok()
     }

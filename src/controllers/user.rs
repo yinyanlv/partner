@@ -1,8 +1,7 @@
-use actix_web::{HttpRequest, Json, State, FromRequest};
+use actix_web::{HttpRequest, Json, State};
 use actix_web::middleware::session::RequestSession;
 
 use common::state::AppState;
-use common::lazy_static::CONFIG;
 use models::user::*;
 use models::response::{Message, MessageResult};
 
@@ -47,17 +46,17 @@ pub fn login((req, login_user): (HttpRequest<AppState>, Json<LoginUser>)) -> Mes
 
         Ok(data) => {
 
-            req.session().set::<RawUser>("user", data.clone());
+            req.session().set::<RawUser>("user", data.clone()).unwrap();
 
             if login_user.remember {
-                req.session().set::<bool>("remember", true);
+                req.session().set::<bool>("remember", true).unwrap();
             } else {
-                req.session().set::<bool>("remember", false);
+                req.session().set::<bool>("remember", false).unwrap();
             }
 
             Message::success(data)
         },
-        Err(err) => Message::error("用户名或密码错误")
+        Err(_err) => Message::error("用户名或密码错误")
     }
 }
 
@@ -116,7 +115,7 @@ pub fn modify_password((state, modify_password_user): (State<AppState>, Json<Mod
 
     match modify_password_user.validate(conn) {
 
-        Ok(data) => {
+        Ok(_data) => {
 
             match modify_password_user.modify_password(conn) {
                 Ok(_) => {

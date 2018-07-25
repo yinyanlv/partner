@@ -28,9 +28,8 @@ mod common;
 mod controllers;
 mod models;
 
-use std::sync::Arc;
-use actix_web::{server, App, http, middleware, HttpResponse, pred};
-use actix_web::http::{header, Method};
+use actix_web::{server, App, http, middleware, pred};
+use actix_web::http::{header};
 use actix_web::middleware::{session::SessionStorage, cors::Cors};
 use actix_redis::RedisSessionBackend;
 use chrono::Duration;

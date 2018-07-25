@@ -1,9 +1,9 @@
 use diesel;
 use diesel::prelude::*;
 use diesel::prelude::MysqlConnection;
-use diesel::r2d2::{ConnectionManager, Pool, PooledConnection};
+use diesel::r2d2::{ConnectionManager, PooledConnection};
 use chrono::prelude::*;
-use chrono::{Local, NaiveDateTime};
+use chrono::NaiveDateTime;
 
 use common::schema::work_event;
 

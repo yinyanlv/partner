@@ -1,4 +1,4 @@
-use actix_web::{Error, Request};
+use actix_web::Request;
 use actix_web::pred::Predicate;
 
 use common::state::AppState;
@@ -10,7 +10,7 @@ pub struct CheckLogin;
 
 impl Predicate<AppState> for CheckLogin {
 
-    fn check(&self, req: &Request, state: &AppState) -> bool {
+    fn check(&self, req: &Request, _state: &AppState) -> bool {
 
         let is_logged_in = req.extensions().get::<IsLoggedIn>().is_some();
 

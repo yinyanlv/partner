@@ -1,4 +1,4 @@
-use actix_web::{HttpRequest, State, Json, Query, FromRequest};
+use actix_web::{State, Json, Query};
 
 use common::state::AppState;
 use models::work_record::*;

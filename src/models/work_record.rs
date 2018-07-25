@@ -2,9 +2,9 @@ use diesel;
 use diesel::prelude::*;
 use diesel::expression::sql_literal::sql;
 use diesel::prelude::MysqlConnection;
-use diesel::r2d2::{ConnectionManager, Pool, PooledConnection};
+use diesel::r2d2::{ConnectionManager, PooledConnection};
 use chrono::prelude::*;
-use chrono::{Local, NaiveDate, NaiveDateTime};
+use chrono::{Local, NaiveDateTime};
 
 use models::work_event::*;
 use common::schema::work_record;
@@ -65,7 +65,7 @@ impl UpdateWorkRecord {
                             .execute(conn)
                             .unwrap();
         
-        DeleteWorkEvents.delete(conn, self.id);
+        DeleteWorkEvents.delete(conn, self.id).unwrap();
 
         if events.len() > 0 {
 
@@ -79,7 +79,7 @@ impl UpdateWorkRecord {
 
             if new_events.len() > 0 {
             
-                WorkEvent::create(conn, &new_events);
+                WorkEvent::create(conn, &new_events).unwrap();
             }
         }
 
@@ -120,7 +120,7 @@ impl WorkRecord {
 
         if new_events.len() > 0 {
         
-            WorkEvent::create(conn, &new_events);
+            WorkEvent::create(conn, &new_events).unwrap();
         }
 
         Ok(last_insert_id as usize)

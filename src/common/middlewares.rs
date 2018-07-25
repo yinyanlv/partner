@@ -4,7 +4,7 @@ use actix_web::http::header;
 use actix_web::http::header::HeaderValue;
 use actix_web::middleware::{Middleware, Started, Response};
 use actix_web::middleware::session::RequestSession;
-use actix_redis::{Command, RespValue};
+use actix_redis::Command;
 use cookie::{CookieJar, Key};
 use chrono::Duration;
 use futures::Future;
@@ -25,7 +25,7 @@ impl Middleware<AppState> for Remember {
 
             Ok(data) => {
 
-                    if (data.is_some()) {
+                    if data.is_some() {
 
                         let remember = data.unwrap();
 
@@ -42,7 +42,7 @@ impl Middleware<AppState> for Remember {
 
                                     addr.send(Command(resp_array!["EXPIRE", &*redis_key.unwrap(), &*CONFIG.redis.ttl.to_string()]))
                                         .map_err(Error::from)
-                                        .then(move |res| {
+                                        .then(move |_res| {
                                             Ok(())
                                         })
                                 });
